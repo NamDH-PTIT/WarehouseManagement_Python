@@ -12,7 +12,7 @@ urlpatterns = [
     path('customer/<str:customer_id>/',getCustomer),
     path('nhacungcap/',getNCC),
     path('nhacungcap/<str:ncc_id>/',getNCC),
-    path('addphieuxuat/',addPhieuNhap),
+    path('addphieuxuat/',addPhieuXuat),
     path('updateproduct/',updateProduct),
     path('home_manager/',home_manager),
     path('export_products/',export_products_excel),

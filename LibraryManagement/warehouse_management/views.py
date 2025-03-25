@@ -1,7 +1,9 @@
 import json
+from datetime import datetime
 
 import openpyxl
 from django.db import transaction
+from django.db.models.aggregates import Sum
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -127,11 +129,12 @@ def getNCC(request,customer_id=None):
 @csrf_exempt
 @require_http_methods(["POST"])
 @transaction.atomic
-def addPhieuNhap(request):
+def addPhieuXuat(request):
     data = json.loads(request.body)
     customerRequest = data.get("codeCustomer")
 
     try:
+
         customer = Customer.objects.get(code=customerRequest)
 
         phieuXuatRequest = data.get("phieuXuat")
@@ -172,6 +175,10 @@ def addPhieuNhap(request):
                 # **Cập nhật số lượng sản phẩm**
                 product.quantity -= item.get("quantity")
                 product.save()
+                Log.objects.create(
+                    date=datetime.datetime.now(),
+                    notes="xử lý phiếu xuất"+phieuXuat.code
+                )
 
         return JsonResponse({"message": "Thêm phiếu xuất thành công", "success": True})
 
@@ -198,9 +205,22 @@ def updateProduct(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def home_manager(request):
-    products = list(Product.objects.filter(quantity__lt=20).order_by('quantity').values())
-    return JsonResponse({"products": products, "success": True})
-
+    low_stock_products = Product.objects.filter(quantity__lt=20)
+    phieuxuat=PhieuXuat.objects.filter(status="completed")
+    loinhuan=0
+    for item in phieuxuat:
+        chitietpx=ChiTietPhieuXuat.objects.filter(phieuXuat=item)
+        for x in chitietpx:
+            tong=(x.sellingPrice-x.product.importPrice)*x.quantity
+            loinhuan=tong
+    doanhthu = PhieuXuat.objects.filter(status="completed").aggregate(Sum('totalPrice'))['totalPrice__sum']
+    products = Product.objects.all()
+    pxt=[]
+    for i in range(1,13):
+        pxt.append(PhieuXuat.objects.filter(date__month=i).count())
+    phieuxuat=PhieuXuat.objects.filter(status="pending")
+    log = Log.objects.filter(notes__icontains="đơn hàng").order_by('-date')[:5]
+    return render(request,'LibraryManagement/home_manager.html',{"pxt":pxt,"phieuxuat":phieuxuat,"soluongpx":phieuxuat.count(),"products":products.count(),"log":log,"doanhthu":doanhthu,"loinhuan":loinhuan,"sanphamsaphet":low_stock_products})
 @csrf_exempt
 @require_http_methods(["GET"])
 def export_products_excel(request):
