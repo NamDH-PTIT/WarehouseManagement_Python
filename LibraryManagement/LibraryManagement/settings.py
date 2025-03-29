@@ -125,3 +125,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # SMTP của Gmail
+EMAIL_PORT = 587  # Cổng gửi email
+EMAIL_USE_TLS = True  # Sử dụng TLS để bảo mật
+EMAIL_HOST_USER = "emgaitoi201019974@gmail.com"  # Thay bằng email của bạn
+EMAIL_HOST_PASSWORD = "nekq gifp ooel vrwn"  # Thay bằng mật khẩu ứng dụng (App Password) nếu dùng Gmail
+
+

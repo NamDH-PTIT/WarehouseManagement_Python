@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product Information</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --background-color: #f9fafb;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        .image-upload {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .image-preview {
+            margin-top: 12px;
+            width: 200px;
+            height: 200px;
+            border: 2px dashed var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .image-preview-text {
+            color: #9ca3af;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--background-color);
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chỉnh sửa thông tin sản phẩm</h1>
+        <form id="productForm">
+            <div class="form-group">
+                <label for="productName">Tên sản phẩm</label>
+                <input type="text" id="productName" name="productName" required>
+                <div class="error" id="nameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="productType">Loại sản phẩm</label>
+                <select id="productType" name="productType" required>
+                    <option value="">-- Chọn loại sản phẩm --</option>
+                    <option value="electronics">Điện tử</option>
+                    <option value="clothing">Quần áo</option>
+                    <option value="food">Thực phẩm</option>
+                    <option value="furniture">Nội thất</option>
+                    <option value="beauty">Làm đẹp</option>
+                    <option value="other">Khác</option>
+                </select>
+                <div class="error" id="typeError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="productPrice">Giá sản phẩm (VNĐ)</label>
+                <input type="number" id="productPrice" name="productPrice" min="0" step="1000" required>
+                <div class="error" id="priceError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="productImage">Hình ảnh sản phẩm</label>
+                <div class="image-upload">
+                    <input type="file" id="productImage" name="productImage" accept="image/*">
+                    <div class="image-preview" id="imagePreview">
+                        <span class="image-preview-text">Chưa có hình ảnh</span>
+                    </div>
+                </div>
+                <div class="error" id="imageError"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                <button type="button" class="btn btn-secondary" id="cancelButton">Hủy</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Image preview functionality
+        const productImage = document.getElementById('productImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewText = imagePreview.querySelector('.image-preview-text');
+
+        productImage.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.addEventListener('load', function() {
+                    if (previewText) {
+                        previewText.style.display = 'none';
+                    }
+
+                    let img = imagePreview.querySelector('img');
+                    if (!img) {
+                        img = document.createElement('img');
+                        imagePreview.appendChild(img);
+                    }
+
+                    img.src = reader.result;
+                });
+
+                reader.readAsDataURL(file);
+            } else {
+                if (previewText) {
+                    previewText.style.display = 'block';
+                }
+
+                const img = imagePreview.querySelector('img');
+                if (img) {
+                    imagePreview.removeChild(img);
+                }
+            }
+        });
+
+        // Form validation
+        const productForm = document.getElementById('productForm');
+        const nameError = document.getElementById('nameError');
+        const typeError = document.getElementById('typeError');
+        const priceError = document.getElementById('priceError');
+        const imageError = document.getElementById('imageError');
+
+        productForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            let isValid = true;
+
+            // Reset errors
+            nameError.textContent = '';
+            typeError.textContent = '';
+            priceError.textContent = '';
+            imageError.textContent = '';
+
+            // Validate product name
+            const productName = document.getElementById('productName').value.trim();
+            if (!productName) {
+                nameError.textContent = 'Vui lòng nhập tên sản phẩm';
+                isValid = false;
+            }
+
+            // Validate product type
+            const productType = document.getElementById('productType').value;
+            if (!productType) {
+                typeError.textContent = 'Vui lòng chọn loại sản phẩm';
+                isValid = false;
+            }
+
+            // Validate product price
+            const productPrice = document.getElementById('productPrice').value;
+            if (!productPrice) {
+                priceError.textContent = 'Vui lòng nhập giá sản phẩm';
+                isValid = false;
+            } else if (parseFloat(productPrice) < 0) {
+                priceError.textContent = 'Giá sản phẩm không thể là số âm';
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Form is valid, you can submit it or process the data
+                alert('Thông tin sản phẩm đã được lưu thành công!');
+                // In a real application, you would submit the form or use AJAX here
+            }
+        });
+
+        // Cancel button functionality
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            if (confirm('Bạn có chắc muốn hủy các thay đổi?')) {
+                productForm.reset();
+
+                // Reset image preview
+                const img = imagePreview.querySelector('img');
+                if (img) {
+                    imagePreview.removeChild(img);
+                }
+                if (previewText) {
+                    previewText.style.display = 'block';
+                }
+
+                // Reset errors
+                nameError.textContent = '';
+                typeError.textContent = '';
+                priceError.textContent = '';
+                imageError.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>

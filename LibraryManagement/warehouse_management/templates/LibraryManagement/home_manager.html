@@ -507,11 +507,11 @@
             </button>
         </div>
         <div class="sidebar-menu">
-            <a href="#" class="menu-item active">
+            <a href="/home_manager/" class="menu-item active">
                 <i class="fas fa-th-large"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item">
+            <a href="/getProduct/" class="menu-item">
                 <i class="fas fa-box"></i>
                 <span>Sản phẩm</span>
             </a>
@@ -600,7 +600,7 @@
                         <i class="fas fa-hand-holding-usd"></i>
                         Lợi nhuận
                     </div>
-                    <div class="revenue-value">{{ loinhuan }} đ</div>
+                    <div class="revenue-value">{{ loinhuan|default:"0" }} đ</div>
 
                 </div>
                 <div class="revenue-chart">

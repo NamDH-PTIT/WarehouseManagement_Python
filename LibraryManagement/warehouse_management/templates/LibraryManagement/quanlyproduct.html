@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm - Quản lý nhân viên</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #34495e;
+        }
+
+        .sidebar-header h1 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-header img {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+
+        .sidebar-close {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .menu-item:hover {
+            background-color: #34495e;
+        }
+
+        .menu-item.active {
+            background-color: #34495e;
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .notification {
+            position: relative;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        .notification-icon {
+            font-size: 20px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Notification Panel */
+        .notification-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100%;
+            background-color: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .notification-panel.active {
+            right: 0;
+        }
+
+        .notification-header {
+            background-color: #3498db;
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .notification-content {
+            padding: 16px;
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: #e74c3c;
+        }
+
+        .notification-item-content {
+            flex: 1;
+        }
+
+        .notification-item-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .notification-item-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .notification-item-stock {
+            font-size: 12px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .notification-overlay.active {
+            display: block;
+        }
+
+        /* Products Content */
+        .products {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .products-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .products-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 4px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            padding: 5px;
+            width: 200px;
+        }
+
+        .search-box i {
+            color: #666;
+            margin-right: 8px;
+        }
+
+        .add-product-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .add-product-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .export-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .export-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .filter-btn {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .filter-btn:hover {
+            background-color: #8e44ad;
+        }
+
+        .products-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-item {
+            background-color: white;
+            border-radius: 4px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-item select {
+            border: none;
+            outline: none;
+            padding: 5px;
+            background-color: transparent;
+        }
+
+        .filter-item label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .stock-legend {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-red {
+            background-color: rgba(231, 76, 60, 0.15);
+            border: 1px solid #e74c3c;
+        }
+
+        .legend-yellow {
+            background-color: rgba(241, 196, 15, 0.15);
+            border: 1px solid #f1c40f;
+        }
+
+        .legend-normal {
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+
+        .legend-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .products-table th {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .products-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .products-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .products-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .product-low {
+            background-color: rgba(231, 76, 60, 0.15);
+        }
+
+        .product-medium {
+            background-color: rgba(241, 196, 15, 0.15);
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .product-name {
+            font-weight: 500;
+        }
+
+        .product-category {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .product-price {
+            font-weight: 600;
+        }
+
+        .product-stock {
+            font-weight: 500;
+        }
+
+        .product-stock-low {
+            color: #e74c3c;
+        }
+
+        .product-stock-medium {
+            color: #f39c12;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .edit-btn {
+            background-color: #f1f1f1;
+            color: #3498db;
+        }
+
+        .edit-btn:hover {
+            background-color: #e1e1e1;
+        }
+
+        .delete-btn {
+            background-color: #f1f1f1;
+            color: #e74c3c;
+        }
+
+        .delete-btn:hover {
+            background-color: #e1e1e1;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+
+        .pagination-item {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .pagination-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .pagination-item.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .menu-toggle, .sidebar-close {
+                display: block;
+            }
+
+            .notification-panel {
+                width: 300px;
+            }
+
+            .products-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .products-actions {
+                width: 100%;
+            }
+
+            .search-box {
+                flex: 1;
+            }
+
+            .products-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .products-filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-item {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h1><img src="https://via.placeholder.com/32" alt="Logo"> Fashion</h1>
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="sidebar-menu">
+        <a href="/home_manager/" class="menu-item">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="/getProduct/" class="menu-item active">
+            <i class="fas fa-box"></i>
+            <span>Sản phẩm</span>
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-folder"></i>
+            <span>Danh mục</span>
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-users"></i>
+            <span>Người dùng</span>
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Đơn hàng</span>
+        </a>
+    </div>
+</div>
+
+<!-- Notification Overlay -->
+<div class="notification-overlay" id="notificationOverlay"></div>
+
+<!-- Notification Panel -->
+<div class="notification-panel" id="notificationPanel">
+    <div class="notification-header">
+        <div class="notification-title">Sản phẩm sắp hết hàng</div>
+        <button class="notification-close" id="notificationClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="notification-content">
+        {% for item in sanphamsaphet %}
+            <div class="notification-item">
+                <div class="notification-item-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="notification-item-content">
+                    <div class="notification-item-title">{{ item.nameProduct }}-{{ item.code }}</div>
+                    <div class="notification-item-desc">{{ item.category }}</div>
+                    <div class="notification-item-stock">Còn lại: {{ item.quantity }} sản phẩm</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="header">
+        <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="header-right">
+            <div class="notification" id="notificationBtn">
+                <i class="fas fa-bell notification-icon"></i>
+                <span class="notification-badge">{{ sanphamsaphet.count }}</span>
+            </div>
+            <div class="user-info">
+                <span>Admin</span>
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="products">
+        <div class="products-header">
+            <h1 class="products-title">Danh sách sản phẩm</h1>
+            <div class="products-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                </div>
+                <button class="add-product-btn">
+                    <i class="fas fa-plus"></i>
+                    Thêm sản phẩm
+                </button>
+                <button class="export-btn" id="exportBtn">
+                    <i class="fas fa-file-export"></i>
+                    Xuất Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="products-filters">
+            <div class="filter-item">
+                <label>Danh mục:</label>
+                <select id="categoryFilter">
+                    <option value="">Tất cả</option>
+                    {% for item in danhmuc%}
+                        <option value="{{ item.category }}">{{item.category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Sắp xếp:</label>
+                <select id="sortFilter">
+                    <option value="">Tất cả</option>
+                    <option value="name-asc">Tên A-Z</option>
+                    <option value="name-desc">Tên Z-A</option>
+                    <option value="price-asc">Giá tăng dần</option>
+                    <option value="price-desc">Giá giảm dần</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Trạng thái:</label>
+                <select id="statusFilter">
+                    <option value="">Tất cả</option>
+                    <option value="2">Còn hàng</option>
+                    <option value="3">Sắp hết hàng</option>
+                    <option value="4">Hết hàng</option>
+                </select>
+            </div>
+            <button class="filter-btn" id="applyFilterBtn">
+                <i class="fas fa-filter"></i>
+                Lọc sản phẩm
+            </button>
+        </div>
+
+        <div class="stock-legend">
+            <div class="legend-item">
+                <div class="legend-color legend-red"></div>
+                <div class="legend-text">Dưới 20 sản phẩm</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-yellow"></div>
+                <div class="legend-text">Từ 20 đến 50 sản phẩm</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-normal"></div>
+                <div class="legend-text">Trên 50 sản phẩm</div>
+            </div>
+        </div>
+
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Mã SP</th>
+                    <th>Danh mục</th>
+                    <th>Giá nhập</th>
+                    <th>Giá bán</th>
+                    <th>Tồn kho</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in products %}
+                    {% if item.quantity < 50 %}
+                    <tr class="product-low">
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="https://via.placeholder.com/50" alt="Áo thun nam" class="product-image">
+                                <div>
+                                    <div class="product-name">{{ item.nameProduct }}</div>
+                                    <div class="product-category">{{ item.category }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.category }}</td>
+                        <td class="product-price">{{ item.importPrice }} đ</td>
+                        <td class="product-price">{{ item.sellingPrice }} đ</td>
+                        <td><span class="product-stock product-stock-low">{{ item.quantity }}</span></td>
+                        <td>
+                            <div class="product-actions">
+                                <div class="action-btn edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <div class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% elif item.quantity < 70 %}
+                        <tr class="product-medium">
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://via.placeholder.com/50" alt="Áo sơ mi nam" class="product-image">
+                                    <div>
+                                        <div class="product-name">{{ item.nameProduct }}</div>
+                                        <div class="product-category">{{ item.category }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.category }}</td>
+                            <td class="product-price">{{ item.importPrice }} đ</td>
+                            <td class="product-price">{{ item.sellingPrice }} đ</td>
+                            <td><span class="product-stock product-stock-medium">{{ item.quantity }}</span></td>
+                            <td>
+                                <div class="product-actions">
+                                    <div class="action-btn edit-btn">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <div class="action-btn delete-btn">
+                                        <i class="fas fa-trash"></i>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://via.placeholder.com/50" alt="Áo khoác nam" class="product-image">
+                                    <div>
+                                        <div class="product-name">{{ item.nameProduct }}</div>
+                                        <div class="product-category">{{ item.category }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.category }}</td>
+                            <td class="product-price">{{ item.importPrice }} đ</td>
+                            <td class="product-price">{{ item.sellingPrice }} đ</td>
+                            <td><span class="product-stock">{{ item.quantity }}</span></td>
+                            <td>
+                                <div class="product-actions">
+                                    <div class="action-btn edit-btn">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <div class="action-btn delete-btn">
+                                        <i class="fas fa-trash"></i>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination" id="pagination">
+            {% for item in page %}
+                {% if item == nowpage %}
+                    <div class="pagination-item active" data-page="{{ item }}">{{ item }}</div>
+                {% else %}
+                     <div class="pagination-item " data-page="{{ item }}">{{ item }}</div>
+                {% endif %}
+            {% endfor %}
+            <div class="pagination-item" data-page="next">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const sidebar = document.getElementById('sidebar');
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.add('active');
+    });
+
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+                sidebar.classList.remove('active');
+            }
+        }
+    });
+
+    // Notification panel toggle
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationClose = document.getElementById('notificationClose');
+    const notificationPanel = document.getElementById('notificationPanel');
+    const notificationOverlay = document.getElementById('notificationOverlay');
+
+    notificationBtn.addEventListener('click', () => {
+        notificationPanel.classList.add('active');
+        notificationOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    function closeNotification() {
+        notificationPanel.classList.remove('active');
+        notificationOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    notificationClose.addEventListener('click', closeNotification);
+    notificationOverlay.addEventListener('click', closeNotification);
+
+    // Export to Excel functionality
+    const exportBtn = document.getElementById('exportBtn');
+    //export
+    exportBtn.addEventListener('click', () => {
+    // Show loading message
+    const loadingMessage = document.createElement('div');
+    loadingMessage.style.position = 'fixed';
+    loadingMessage.style.top = '50%';
+    loadingMessage.style.left = '50%';
+    loadingMessage.style.transform = 'translate(-50%, -50%)';
+    loadingMessage.style.padding = '15px 20px';
+    loadingMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    loadingMessage.style.color = 'white';
+    loadingMessage.style.borderRadius = '5px';
+    loadingMessage.style.zIndex = '2000';
+    loadingMessage.textContent = 'Đang xuất dữ liệu ra file Excel...';
+    document.body.appendChild(loadingMessage);
+
+    // Lấy tham số từ URL
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get('category');
+    const status = params.get('status');
+    const sort = params.get('sort');
+    const search = params.get('search');
+
+    // Gửi request export Excel
+    fetch('/export-excel/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            category: category,
+            status: status,
+            sort: sort,
+            search: search
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        }
+        throw new Error('Lỗi khi xuất Excel');
+    })
+    .then(blob => {
+        // Tạo file Excel để tải về
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'danh-sach-san-pham.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        // Xóa thông báo loading
+        document.body.removeChild(loadingMessage);
+
+        // Thông báo thành công
+        alert('Xuất file Excel thành công!');
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        document.body.removeChild(loadingMessage);
+        alert('Có lỗi xảy ra khi xuất Excel: ' + error.message);
+    });
+});
+
+
+    // Filter button functionality
+    const applyFilterBtn = document.getElementById('applyFilterBtn');
+//filter
+    applyFilterBtn.addEventListener('click', () => {
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const sortFilter = document.getElementById('sortFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const searchQuery = document.getElementById('searchInput').value;
+
+        // Build the filter URL with query parameters
+        let filterUrl = '/filter/?';
+        const params = new URLSearchParams();
+
+        if (categoryFilter) {
+            params.append('category', categoryFilter);
+        }
+
+        if (sortFilter) {
+            params.append('sort', sortFilter);
+        }
+
+        if (statusFilter) {
+            params.append('status', statusFilter);
+        }
+
+        if (searchQuery) {
+            params.append('search', searchQuery);
+        }
+
+        filterUrl += params.toString();
+
+        // Show loading indicator
+        const loadingMessage = document.createElement('div');
+        loadingMessage.style.position = 'fixed';
+        loadingMessage.style.top = '50%';
+        loadingMessage.style.left = '50%';
+        loadingMessage.style.transform = 'translate(-50%, -50%)';
+        loadingMessage.style.padding = '15px 20px';
+        loadingMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        loadingMessage.style.color = 'white';
+        loadingMessage.style.borderRadius = '5px';
+        loadingMessage.style.zIndex = '2000';
+        loadingMessage.textContent = 'Đang lọc sản phẩm...';
+        document.body.appendChild(loadingMessage);
+
+        // Send request to filter API
+        fetch(filterUrl)
+            .then(response => {
+                if (response.ok) {
+                    // Redirect to the filtered page
+                    window.location.href = '/filter/?' + params.toString();
+                } else {
+                    throw new Error('Lỗi khi lọc sản phẩm');
+                }
+            })
+            .catch(error => {
+                console.error('Filter error:', error);
+                document.body.removeChild(loadingMessage);
+                alert('Có lỗi xảy ra khi lọc sản phẩm: ' + error.message);
+            });
+    });
+
+
+    const paginationItems = document.querySelectorAll('.pagination-item');
+// nhảy page
+    paginationItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const page = item.getAttribute('data-page');
+
+            if (page === 'next') {
+                // Get the current active page
+                const activePage = document.querySelector('.pagination-item.active');
+                const nextPage = parseInt(activePage.getAttribute('data-page')) + 1;
+
+                // Navigate to the next page
+                navigateToPage(nextPage);
+            } else {
+                // Navigate to the clicked page
+                navigateToPage(page);
+            }
+        });
+    });
+//xem page
+    function navigateToPage(page) {
+        // Get current URL and parameters
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+
+        // Update or add the page parameter
+        params.set('page', page);
+
+        // Navigate to the new URL
+        window.location.href = '/getProduct/?' + params.toString();
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+//tìm kiếm
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            // Get current URL and parameters
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+        const sortFilter = document.getElementById('sortFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const searchQuery = document.getElementById('searchInput').value;
+        if (categoryFilter) {
+            params.append('category', categoryFilter);
+        }
+
+        if (sortFilter) {
+            params.append('sort', sortFilter);
+        }
+
+        if (statusFilter) {
+            params.append('status', statusFilter);
+        }
+
+        if (searchQuery) {
+            params.append('search', searchQuery);
+        }
+            // Update or add the search parameter
+            params.set('search', searchInput.value);
+
+            // Reset to page 1 when searching
+            {#params.set('page', '1');#}
+
+            // Navigate to the search URL
+            window.location.href = '/filter/?' + params.toString();
+        }
+    });
+
+    // Edit and Delete button functionality
+    const editButtons = document.querySelectorAll('.edit-btn');
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+//editproduct
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const productCode = row.querySelector('td:nth-child(2)').textContent;
+
+            // Navigate to edit page
+            window.location.href = `/editProduct/${productCode}`;
+        });
+    });
+//xóa sản phẩm
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const productCode = row.querySelector('td:nth-child(2)').textContent;
+            const productName = row.querySelector('.product-name').textContent;
+
+            if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${productName}" không?`)) {
+                // Send delete request
+                fetch(`/deleteProduct/${productCode}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Remove the row from the table
+                        row.remove();
+                        alert('Xóa sản phẩm thành công!');
+                    } else {
+                        throw new Error('Lỗi khi xóa sản phẩm');
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete error:', error);
+                    alert('Có lỗi xảy ra khi xóa sản phẩm: ' + error.message);
+                });
+            }
+        });
+    });
+    document.querySelector('.add-product-btn').addEventListener('click', () => {
+    window.open('/them-san-pham/');;
+});
+</script>
+</body>
+</html>
