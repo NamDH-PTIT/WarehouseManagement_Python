@@ -11,6 +11,7 @@ class Product(models.Model):
     importPrice= models.FloatField()
     sellingPrice = models.FloatField(null=True, blank=True)
     quantity= models.IntegerField()
+    image = models.ImageField(upload_to='images/')
     notes= models.TextField()
 class NhaCungCap(models.Model):
     code =models.CharField(max_length=20, unique=True)

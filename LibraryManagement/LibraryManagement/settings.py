@@ -131,5 +131,10 @@ EMAIL_PORT = 587  # Cổng gửi email
 EMAIL_USE_TLS = True  # Sử dụng TLS để bảo mật
 EMAIL_HOST_USER = "emgaitoi201019974@gmail.com"  # Thay bằng email của bạn
 EMAIL_HOST_PASSWORD = "nekq gifp ooel vrwn"  # Thay bằng mật khẩu ứng dụng (App Password) nếu dùng Gmail
+import os
+
+MEDIA_URL = '/media/'  # URL để truy cập ảnh
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Thư mục lưu ảnh
+
 
 

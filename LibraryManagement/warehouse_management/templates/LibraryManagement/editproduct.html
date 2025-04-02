@@ -154,37 +154,33 @@
 <body>
     <div class="container">
         <h1>Chỉnh sửa thông tin sản phẩm</h1>
-        <form id="productForm">
+        <form id="productForm" action="/updateproduct/" method="post" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="productName">Tên sản phẩm</label>
-                <input type="text" id="productName" name="productName" required>
+                <label for="productName">Tên sản phẩm {{ product.nameProduct }}</label>
+                <input type="text" id="productName" name="productName" value="{{ product.nameProduct }}" required>
                 <div class="error" id="nameError"></div>
             </div>
 
             <div class="form-group">
                 <label for="productType">Loại sản phẩm</label>
                 <select id="productType" name="productType" required>
-                    <option value="">-- Chọn loại sản phẩm --</option>
-                    <option value="electronics">Điện tử</option>
-                    <option value="clothing">Quần áo</option>
-                    <option value="food">Thực phẩm</option>
-                    <option value="furniture">Nội thất</option>
-                    <option value="beauty">Làm đẹp</option>
-                    <option value="other">Khác</option>
+                    {% for item in category %}
+                        <option value="{{ item.category }}">{{ item.category }}</option>
+                    {% endfor %}
                 </select>
                 <div class="error" id="typeError"></div>
             </div>
 
             <div class="form-group">
                 <label for="productPrice">Giá sản phẩm (VNĐ)</label>
-                <input type="number" id="productPrice" name="productPrice" min="0" step="1000" required>
+                <input type="number" id="productPrice" name="productPrice" min="0"  value="{{ product.sellingPrice }}" required>
                 <div class="error" id="priceError"></div>
             </div>
 
             <div class="form-group">
                 <label for="productImage">Hình ảnh sản phẩm</label>
                 <div class="image-upload">
-                    <input type="file" id="productImage" name="productImage" accept="image/*">
+                    <input type="file" id="productImage" name="productImage" accept="/image/*">
                     <div class="image-preview" id="imagePreview">
                         <span class="image-preview-text">Chưa có hình ảnh</span>
                     </div>
@@ -245,7 +241,7 @@
         const imageError = document.getElementById('imageError');
 
         productForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+
             let isValid = true;
 
             // Reset errors
@@ -288,22 +284,7 @@
         // Cancel button functionality
         document.getElementById('cancelButton').addEventListener('click', function() {
             if (confirm('Bạn có chắc muốn hủy các thay đổi?')) {
-                productForm.reset();
-
-                // Reset image preview
-                const img = imagePreview.querySelector('img');
-                if (img) {
-                    imagePreview.removeChild(img);
-                }
-                if (previewText) {
-                    previewText.style.display = 'block';
-                }
-
-                // Reset errors
-                nameError.textContent = '';
-                typeError.textContent = '';
-                priceError.textContent = '';
-                imageError.textContent = '';
+                window.location.href="/getProduct/"
             }
         });
     </script>

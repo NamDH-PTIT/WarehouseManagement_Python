@@ -1,3 +1,4 @@
+from django.conf.urls.static import static
 from django.urls import path
 
 from .views import *
@@ -25,4 +26,5 @@ urlpatterns = [
     path('deleteProduct/',updatepassword),
     path('deleteProduct/<str:product_code>/', delete_product),
     path('filter/', filter_products),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

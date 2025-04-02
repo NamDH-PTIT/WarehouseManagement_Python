@@ -791,7 +791,11 @@
                     <tr class="product-low">
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="https://via.placeholder.com/50" alt="Áo thun nam" class="product-image">
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="Ảnh sản phẩm"class="product-image">
+                                {% else %}
+                                    <img src="/media/images/default.jpg" alt=""class="product-image">
+                                {% endif %}
                                 <div>
                                     <div class="product-name">{{ item.nameProduct }}</div>
                                     <div class="product-category">{{ item.category }}</div>

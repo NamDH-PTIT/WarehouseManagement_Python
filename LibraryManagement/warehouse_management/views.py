@@ -36,7 +36,9 @@ def getAllProducts(request):
 @csrf_exempt
 def editProduct(request,product_id):
     product = get_object_or_404(Product.objects.values(), code=product_id)  # Tìm sản phẩm theo code, nếu không có thì trả về 404
-    return render(request,"LibraryManagement/editProduct.html",{"product":product})
+    category=Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
+    request.session['product_id'] = product_id
+    return render(request,"LibraryManagement/editProduct.html",{"product":product,"category":category})
 
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -194,18 +196,13 @@ def addPhieuXuat(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def updateProduct(request):
-    data = json.loads(request.body)
-    try:
-        with transaction.atomic():
-            product = Product.objects.get(code=data.get("code"))
-            product.sellingPrice = data.get("sellingPrice")
-            product.notes = data.get("notes")
-            product.name = data.get("nameProduct")
-            product.category = data.get("category")
-            product.save()
-            return JsonResponse( {"message":"thành công","success":True},status=200)
-    except Product.DoesNotExist:
-        return JsonResponse({"message":"không thành công", "success": False}, status=400)
+    product = Product.objects.get(code=request.session.get("product_id"))
+    product.category=request.POST.get("productType")
+    product.sellingPrice=request.POST.get("productPrice")
+    product.image=request.FILES.get("productImage")
+    product.nameProduct = request.POST.get("productName")
+    product.save()
+    return redirect("/getProduct/")
 
 @csrf_exempt
 @require_http_methods(["GET"])
@@ -283,6 +280,12 @@ def export_products_excel(request):
 @require_http_methods(["GET", "POST"])
 def login(request):
     if request.method == "POST":
+        if "user_id" in request.session:
+            user = User.objects.get(code=request.session["user_id"])
+            if user.role.name=="Admin":
+                return redirect('home_manager/')
+            elif user.role.name=="User":
+                return render(request, "LibraryManagement/index.html")
         email = request.POST.get("email")
         password = request.POST.get("password")
         user = User.objects.filter(email=email).first()
@@ -294,7 +297,7 @@ def login(request):
                 return redirect('home_manager/')
             else:
                 request.session["user_id"] = user.code
-                return render(request, "LibraryManagement/index.html.html")
+                return render(request, "LibraryManagement/index.html")
     elif request.method == "GET" :
         return render(request, "LibraryManagement/login.html",)
 
