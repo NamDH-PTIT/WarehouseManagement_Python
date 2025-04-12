@@ -37,5 +37,6 @@ urlpatterns = [
                   path('export/', exportkho),
                   path('chuyenkho/productCode=<str:productCode>', chuyenkho),
                   path('chuyenkho/', chuyensp),
-                  path('quanlynhaphang/', quanlynhaphang)
+                  path('quanlynhaphang/', quanlynhaphang),
+                  path('quanlykhachhang', quanlykhachhang)
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

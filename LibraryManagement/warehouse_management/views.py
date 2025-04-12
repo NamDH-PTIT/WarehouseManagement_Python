@@ -697,4 +697,5 @@ def quanlynhaphang(request):
     kho=Kho.objects.all()
     trangthai=PhieuNhap.objects.raw('select id,status from database_phieunhap group by status')
     return render(request, 'LibraryManagement/quanlynhaphang.html',{'ncc':ncc,'phieunhap':phieunhap,'kho':kho,'trangthai':trangthai})
-
+def quanlykhachhang(request):
+    
