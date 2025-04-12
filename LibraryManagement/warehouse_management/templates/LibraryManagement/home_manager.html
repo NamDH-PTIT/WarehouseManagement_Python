@@ -499,37 +499,33 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h1><img src="https://via.placeholder.com/32" alt="Logo"> Fashion</h1>
-            <button class="sidebar-close" id="sidebarClose">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/home_manager/" class="menu-item active">
-                <i class="fas fa-th-large"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/getProduct/" class="menu-item">
-                <i class="fas fa-box"></i>
-                <span>Sản phẩm</span>
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-folder"></i>
-                <span>Danh mục</span>
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Người dùng</span>
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Đơn hàng</span>
-            </a>
-        </div>
-    </div>
-
+{#    <div class="sidebar" id="sidebar">#}
+{#        <div class="sidebar-header">#}
+{#            <h1><img src="https://via.placeholder.com/32" alt="Logo"> Fashion</h1>#}
+{#            <button class="sidebar-close" id="sidebarClose">#}
+{#                <i class="fas fa-times"></i>#}
+{#            </button>#}
+{#        </div>#}
+{#        <div class="sidebar-menu">#}
+{#            <a href="/home_manager/" class="menu-item active">#}
+{#                <i class="fas fa-th-large"></i>#}
+{#                <span>Dashboard</span>#}
+{#            </a>#}
+{#            <a href="/getProduct/" class="menu-item">#}
+{#                <i class="fas fa-box"></i>#}
+{#                <span>Sản phẩm</span>#}
+{#            </a>#}
+{#            <a href="#" class="menu-item">#}
+{#                <i class="fas fa-users"></i>#}
+{#                <span>Người dùng</span>#}
+{#            </a>#}
+{#            <a href="#" class="menu-item">#}
+{#                <i class="fas fa-shopping-cart"></i>#}
+{#                <span>Đơn hàng</span>#}
+{#            </a>#}
+{#        </div>#}
+{#    </div>#}
+    {% include 'LibraryManagement/basemenu.html' %}
     <!-- Notification Overlay -->
     <div class="notification-overlay" id="notificationOverlay"></div>
 
@@ -555,10 +551,6 @@
                 </div>
             </div>
             {% endfor %}
-
-
-
-
         </div>
     </div>
 
@@ -688,8 +680,7 @@
                             {% for item in log %}
                                 <div class="activity-item">
                                 <div>{{ item.notes }}</div>
-                                <div class="activity-time">{{ item.date|timesince  }}</div>
-                            </div>
+                                <div class="activity-time">{{ item.date}}</div>                            </div>
                             {% endfor %}
                         </div>
                     </div>

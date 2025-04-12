@@ -176,6 +176,11 @@
                 <input type="number" id="productPrice" name="productPrice" min="0"  value="{{ product.sellingPrice }}" required>
                 <div class="error" id="priceError"></div>
             </div>
+            <div class="form-group">
+                <label for="kho">Kho</label>
+                <input type="text" id="kho" name="kho"  value="{{ product.codeKho.code }}-{{ product.codeKho.description }}-{{ product.codeKho.notes }}" readonly required>
+                <div class="error" id="priceError"></div>
+            </div>
 
             <div class="form-group">
                 <label for="productImage">Hình ảnh sản phẩm</label>

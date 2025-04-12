@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa sản phẩm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background-color: #3498db;
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .warehouse-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+
+        .warehouse-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .warehouse-info strong {
+            color: #333;
+        }
+
+        .modal-footer {
+            padding: 16px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .alert {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+<div class="modal-content">
+    <div class="modal-header">
+        <div class="modal-title">Chuyển kho</div>
+    </div>
+    <div class="modal-body">
+        <div id="alertSuccess" class="alert alert-success">
+            Cập nhật sản phẩm thành công!
+        </div>
+        <div id="alertWarning" class="alert alert-warning">
+            Sản phẩm đã được chuyển sang kho mới!
+        </div>
+
+        <form id="editProductForm" action="/chuyenkho/" method="POST">
+            <input type="hidden" id="productId" name="id" value="{{ product.code }}">
+            <input type="hidden" id="originalWarehouse" value="{{ product.codeKho.description }}">
+
+            <div class="form-group">
+                <label for="productName">Tên sản phẩm</label>
+                <input type="text" id="productName" name="name" class="form-control" value="{{ product.nameProduct }}"
+                       readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="productCode">Mã sản phẩm</label>
+                <input type="text" id="productCode" name="code" class="form-control" value="{{ product.code }}"
+                       readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="warehouseSelect">Kho hàng</label>
+                <select id="warehouseSelect" name="warehouse" class="form-control" required>
+                    {% for item in kho %}
+                        <option value="{{ item.description }}">{{ item.code }}-{{ item.description }}</option>
+                    {% endfor %}
+                </select>
+
+                <div id="warehouseChangeInfo" class="warehouse-info" style="display: none;">
+                    <p><i class="fas fa-info-circle"></i> Sản phẩm sẽ được chuyển từ <strong
+                            id="fromWarehouse">{{ product.codeKho.description }}</strong> sang <strong id="toWarehouse">Kho
+                        B</strong>.</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="productQuantity">Số lượng tối đa {{ product.quantity }}</label>
+                <input type="number" id="productQuantity" name="quantity" class="form-control" value="1" min="1"
+                        >
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelBtn" onclick="goBack()">Hủy</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveProduct()">Lưu</button>
+    </div>
+</div>
+
+<script>
+    // Lấy các phần tử DOM
+    const warehouseSelect = document.getElementById('warehouseSelect');
+    const originalWarehouse = document.getElementById('originalWarehouse');
+    const warehouseChangeInfo = document.getElementById('warehouseChangeInfo');
+    const fromWarehouse = document.getElementById('fromWarehouse');
+    const toWarehouse = document.getElementById('toWarehouse');
+    const alertSuccess = document.getElementById('alertSuccess');
+    const alertWarning = document.getElementById('alertWarning');
+
+    // Khởi tạo giá trị ban đầu cho select
+    warehouseSelect.value = originalWarehouse.value;
+
+    // Xử lý sự kiện khi thay đổi kho hàng
+    warehouseSelect.addEventListener('change', function () {
+        const newWarehouse = this.value;
+        const oldWarehouse = originalWarehouse.value;
+
+        if (newWarehouse !== oldWarehouse) {
+            // Hiển thị thông báo chuyển kho
+            warehouseChangeInfo.style.display = 'block';
+            fromWarehouse.textContent = `Kho ${oldWarehouse}`;
+            toWarehouse.textContent = `Kho ${newWarehouse}`;
+        } else {
+            // Ẩn thông báo nếu chọn lại kho ban đầu
+            warehouseChangeInfo.style.display = 'none';
+        }
+    });
+
+    // Hàm quay lại trang trước
+    function goBack() {
+        window.location.href = '/warehouse_management/';
+    }
+
+    // Hàm lưu sản phẩm
+    function saveProduct() {
+        // Kiểm tra form hợp lệ
+        {#const form = document.getElementById('editProductForm');#}
+        {#if (!form.checkValidity()) {#}
+        {#    alert('Vui lòng điền đầy đủ thông tin!');#}
+        {#    return;#}
+        {# } #}
+
+        // Lấy giá trị từ form
+        const productName = document.getElementById('productName').value;
+        const productCode = document.getElementById('productCode').value;
+        const newWarehouse = warehouseSelect.value;
+        const oldWarehouse = originalWarehouse.value;
+        const quantity = document.getElementById('productQuantity').value;
+
+        // Trong ứng dụng thực tế, bạn sẽ gửi dữ liệu này đến server
+        // Ở đây chúng ta chỉ mô phỏng việc lưu
+        fetch('/chuyenkho/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: document.getElementById('productId').value,
+                name: productName,
+                code: productCode,
+                warehouse: newWarehouse,
+                quantity: quantity
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    // Nếu status không phải 200-299, ném lỗi
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Lỗi server không rõ');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alertSuccess.style.display = 'block';
+                console.log('Kết quả phản hồi:', data);
+                if (newWarehouse !== oldWarehouse) {
+                    alertWarning.style.display = 'block';
+                }
+                setTimeout(function () {
+                    window.location.href = '/warehouse_management/';
+                }, 1500);
+            })
+            .catch(error => {
+                console.error('Lỗi khi gửi dữ liệu:', error.message);
+            });
+
+        // Hiển thị thông báo thành công
+
+
+        // Nếu có thay đổi kho, hiển thị thông báo chuyển kho
+
+
+        // Sau 1.5 giây, chuyển về trang quản lý kho
+
+    }
+
+    // Lấy thông tin sản phẩm từ URL (trong ứng dụng thực tế)
+    function getProductInfoFromUrl() {
+        // Trong ứng dụng thực tế, bạn sẽ phân tích URL để lấy ID sản phẩm
+        // và gọi API để lấy thông tin sản phẩm
+
+        // Ví dụ: const urlParams = new URLSearchParams(window.location.search);
+        // const productId = urlParams.get('id');
+        // const warehouse = urlParams.get('warehouse');
+
+        // Sau đó gọi API để lấy thông tin sản phẩm và điền vào form
+        // fetch(`/api/products/${productId}`)
+        //   .then(response => response.json())
+        //   .then(data => {
+        //     document.getElementById('productName').value = data.name;
+        //     document.getElementById('productCode').value = data.code;
+        //     document.getElementById('warehouseSelect').value = data.warehouse;
+        //     document.getElementById('originalWarehouse').value = data.warehouse;
+        //     document.getElementById('productQuantity').value = data.quantity;
+        //   });
+    }
+
+    // Gọi hàm khi trang được tải
+    // getProductInfoFromUrl();
+</script>
+</body>
+</html>

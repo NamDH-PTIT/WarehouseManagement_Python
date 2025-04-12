@@ -1,10 +1,13 @@
 import json
 from datetime import datetime, timedelta
 import random
+from http.client import responses
+from tarfile import data_filter
 
 import openpyxl
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import Q
 from django.db.models.aggregates import Sum
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse
@@ -18,51 +21,56 @@ from database.models import *
 from warehouse_management.response.ApiResponse import ApiResponse
 
 
-
 # Create your views here.
 @require_http_methods(["GET"])
 @require_http_methods(["GET"])
 @csrf_exempt
 def getAllProducts(request):
     products = list(Product.objects.raw("select * from database_product order by quantity asc"))
-    page=int(request.GET.get('page', 1))-1
+    page = int(request.GET.get('page', 1)) - 1
     low_stock_products = Product.objects.filter(quantity__lt=30)
-    pagequantity=int(len(products)/10)
-    danhmuc =list(Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category"))
-    if(len(products)%10!=0):
-        pagequantity+=1
-    return render(request, 'LibraryManagement/quanlyproduct.html', {"products":products[page*10:page*10+10],"sanphamsaphet":low_stock_products,"page":range(1,pagequantity+1),"nowpage":page+1,"danhmuc":danhmuc})
+    pagequantity = int(len(products) / 10)
+    danhmuc = list(Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category"))
+    if (len(products) % 10 != 0):
+        pagequantity += 1
+    return render(request, 'LibraryManagement/quanlyproduct.html',
+                  {"products": products[page * 10:page * 10 + 10], "sanphamsaphet": low_stock_products,
+                   "page": range(1, pagequantity + 1), "nowpage": page + 1, "danhmuc": danhmuc})
+
+
 @require_http_methods(["GET"])
 @csrf_exempt
-def editProduct(request,product_id):
-    product = get_object_or_404(Product.objects.values(), code=product_id)  # Tìm sản phẩm theo code, nếu không có thì trả về 404
-    category=Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
+def editProduct(request, product_id):
+    # product = get_object_or_404(Product.objects.values(),code=product_id)
+    product=Product.objects.get(code=product_id)# Tìm sản phẩm theo code, nếu không có thì trả về 404
+    category = Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
     request.session['product_id'] = product_id
-    return render(request,"LibraryManagement/editProduct.html",{"product":product,"category":category})
+    return render(request, "LibraryManagement/editProduct.html", {"product": product, "category": category})
+
 
 @require_http_methods(["POST"])
 @csrf_exempt
-def addProduct(request):
+def addPhieuNhap(request):
     data = json.loads(request.body)
     try:
         with transaction.atomic():
-            nccRequest=data.get("nameNCC")
-            ncc=NhaCungCap.objects.get(nameNCC=nccRequest)
-            phieuNhapRequest=data.get("phieuNhap")
-            phieuNhap=PhieuNhap.objects.create(
+            nccRequest = data.get("nameNCC")
+            ncc = NhaCungCap.objects.get(nameNCC=nccRequest)
+            phieuNhapRequest = data.get("phieuNhap")
+            phieuNhap = PhieuNhap.objects.create(
                 date=phieuNhapRequest.get("date"),
                 totalPrice=phieuNhapRequest.get("totalPrice"),
                 notes=phieuNhapRequest.get("notes"),
                 codeNCC=ncc
             )
-            chiTietPhieuNhapRequest=data.get("chiTietPhieuNhap")
+            chiTietPhieuNhapRequest = data.get("chiTietPhieuNhap")
             for item in chiTietPhieuNhapRequest:
-                if(Product.objects.filter(code=item["code"]).exists()):
-                    product=Product.objects.get(code=item["code"])
-                    product.quantity+=item["quantity"]
+                if (Product.objects.filter(code=item["code"]).exists()):
+                    product = Product.objects.get(code=item["code"])
+                    product.quantity += item["quantity"]
                     product.save()
                 else:
-                    product =Product.objects.create(
+                    product = Product.objects.create(
                         code=item.get("code"),
                         nameProduct=item.get("nameProduct"),
                         category=item.get("category"),
@@ -77,16 +85,18 @@ def addProduct(request):
                 )
             return ApiResponse(message="thêm phiếu nhập thành công").to_json()
     except Exception as e:
-        return ApiResponse(message="thêm phiếu nhập Không thành công",status="false").to_json()
+        return ApiResponse(message="thêm phiếu nhập Không thành công", status="false").to_json()
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def addNCC(request):
     data = json.loads(request.body)
-    nccRequest=data.get("nccInfo")
+    nccRequest = data.get("nccInfo")
     if NhaCungCap.objects.filter(nameNCC=nccRequest.get("nameNCC")).exists():
-        nccResponse=NhaCungCap.objects.get(nameNCC=nccRequest.get("nameNCC"))
+        nccResponse = NhaCungCap.objects.get(nameNCC=nccRequest.get("nameNCC"))
         return JsonResponse({"message": "Nhà cung cấp đã tồn tại!", "model": model_to_dict(nccResponse)}, status=400)
-    ncc=NhaCungCap.objects.create(
+    ncc = NhaCungCap.objects.create(
         nameNCC=nccRequest.get("nameNCC"),
         addressNCC=nccRequest.get("addressNCC"),
         code=nccRequest.get("code"),
@@ -94,45 +104,56 @@ def addNCC(request):
         emailNCC=nccRequest.get("emailNCC")
     )
     return JsonResponse({"message": "Thêm nhà cung cấp thành công", "model": model_to_dict(ncc)}, status=200)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def addCustomer(request):
     data = json.loads(request.body)
-    customerRequest=data.get("customer")
+    customerRequest = data.get("customer")
     if Customer.objects.filter(name=customerRequest.get("name")).exists():
-        return JsonResponse({"message":"Customer đã tồn tại!","success":False ,"model": model_to_dict(Customer.objects.get(name=customerRequest.get("name")))}, status=400)
-    customer=Customer.objects.create(
+        return JsonResponse({"message": "Customer đã tồn tại!", "success": False,
+                             "model": model_to_dict(Customer.objects.get(name=customerRequest.get("name")))},
+                            status=400)
+    customer = Customer.objects.create(
         name=customerRequest.get("name"),
         code=customerRequest.get("code"),
         phone=customerRequest.get("phone"),
         email=customerRequest.get("email"),
         address=customerRequest.get("address"),
     )
-    return JsonResponse({"message": "Thêm nhà cung cấp thành công", "success": True,"customer": model_to_dict(customer) }, status=200)
+    return JsonResponse(
+        {"message": "Thêm nhà cung cấp thành công", "success": True, "customer": model_to_dict(customer)}, status=200)
+
+
 @csrf_exempt
 @require_http_methods(["GET"])
-def getCustomer(request,customer_code=None):
+def getCustomer(request, customer_code=None):
     if customer_code is None:
         customers = list(Customer.objects.values())
         return JsonResponse({"success": True, "customers": customers}, status=200)
-    else :
+    else:
         try:
             customer = Customer.objects.get(code=customer_code)
             return JsonResponse({"success": True, "customer": model_to_dict(customer)}, status=200)
         except Exception as e:
             return JsonResponse({"success": False, "message": str(e)}, status=400)
+
+
 @csrf_exempt
 @require_http_methods(["GET"])
-def getNCC(request,customer_id=None):
+def getNCC(request, customer_id=None):
     if customer_id is None:
         nhaCungCap = list(NhaCungCap.objects.values())
-        return JsonResponse({"success":True,"NhaCungCap": nhaCungCap}, status=200)
-    else :
+        return JsonResponse({"success": True, "NhaCungCap": nhaCungCap}, status=200)
+    else:
         try:
             customer = NhaCungCap.objects.get(id=customer_id)
             return JsonResponse({"success": True, "customer": model_to_dict(customer)}, status=200)
         except Exception as e:
             return JsonResponse({"success": False, "message": str(e)}, status=400)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @transaction.atomic
@@ -150,7 +171,8 @@ def addPhieuXuat(request):
         # **Bước 1: Kiểm tra toàn bộ danh sách trước khi tạo phiếu xuất**
         for item in listChiTietPhieuXuat:
             if not Product.objects.filter(code=item.get("codeProduct")).exists():
-                return JsonResponse({"message": f"Không có sản phẩm {item.get('codeProduct')}", "success": False}, status=400)
+                return JsonResponse({"message": f"Không có sản phẩm {item.get('codeProduct')}", "success": False},
+                                    status=400)
 
             product = Product.objects.get(code=item.get("codeProduct"))
             if product.quantity < item.get("quantity"):
@@ -183,8 +205,8 @@ def addPhieuXuat(request):
                 product.quantity -= item.get("quantity")
                 product.save()
                 Log.objects.create(
-                    date=datetime.now() ,
-                    notes="xử lý phiếu xuất"+phieuXuat.code
+                    date=datetime.now(),
+                    notes="xử lý phiếu xuất" + phieuXuat.code
                 )
 
         return JsonResponse({"message": "Thêm phiếu xuất thành công", "success": True})
@@ -193,41 +215,49 @@ def addPhieuXuat(request):
         return JsonResponse({"message": "Khách hàng không tồn tại", "success": False}, status=400)
     except Exception as e:
         return JsonResponse({"success": False, "message": str(e)}, status=400)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def updateProduct(request):
     product = Product.objects.get(code=request.session.get("product_id"))
-    product.category=request.POST.get("productType")
-    product.sellingPrice=request.POST.get("productPrice")
-    product.image=request.FILES.get("productImage")
+    product.category = request.POST.get("productType")
+    product.sellingPrice = request.POST.get("productPrice")
+    product.image = request.FILES.get("productImage")
     product.nameProduct = request.POST.get("productName")
     product.save()
     return redirect("/getProduct/")
+
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def home_manager(request):
     low_stock_products = Product.objects.filter(quantity__lt=30)
-    phieuxuat=PhieuXuat.objects.filter(status="completed")
-    loinhuan=0
+    low_stock_products=low_stock_products.order_by("quantity")
+    phieuxuat = PhieuXuat.objects.filter(status="completed")
+    loinhuan = 0
     for item in phieuxuat:
-        chitietpx=ChiTietPhieuXuat.objects.filter(phieuXuat=item)
+        chitietpx = ChiTietPhieuXuat.objects.filter(phieuXuat=item)
         for x in chitietpx:
-            tong=(x.sellingPrice-x.product.importPrice)*x.quantity
-            loinhuan=tong
+            tong = (x.sellingPrice - x.product.importPrice) * x.quantity
+            loinhuan = tong
     doanhthu = PhieuXuat.objects.filter(status="completed").aggregate(Sum('totalPrice'))['totalPrice__sum']
     products = Product.objects.all()
-    pxt=[]
-    for i in range(1,13):
+    pxt = []
+    for i in range(1, 13):
         pxt.append(PhieuXuat.objects.filter(date__month=i).count())
-    phieuxuat=PhieuXuat.objects.filter(status="pending")
+    phieuxuat = PhieuXuat.objects.filter(status="pending")
     log = Log.objects.order_by('-date')[:5]
-    return render(request,'LibraryManagement/home_manager.html',{"pxt":pxt,"phieuxuat":phieuxuat,"soluongpx":phieuxuat.count(),"products":products.count(),"log":log,"doanhthu":doanhthu,"loinhuan":loinhuan,"sanphamsaphet":low_stock_products})
+    return render(request, 'LibraryManagement/home_manager.html',
+                  {"pxt": pxt, "phieuxuat": phieuxuat, "soluongpx": phieuxuat.count(), "products": products.count(),
+                   "log": log, "doanhthu": doanhthu, "loinhuan": loinhuan, "sanphamsaphet": low_stock_products})
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def export_products_excel(request):
-    data=json.loads(request.body)
-    category=data.get("category")
+    data = json.loads(request.body)
+    category = data.get("category")
     status = data.get("status")
     sort = data.get("sort")
     search = data.get("search")
@@ -276,51 +306,59 @@ def export_products_excel(request):
     wb.save(response)
 
     return response
+
+
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def login(request):
     if request.method == "POST":
         if "user_id" in request.session:
             user = User.objects.get(code=request.session["user_id"])
-            if user.role.name=="Admin":
+            if user.role.name == "Admin":
                 return redirect('home_manager/')
-            elif user.role.name=="User":
+            elif user.role.name == "User":
                 return render(request, "LibraryManagement/index.html")
         email = request.POST.get("email")
         password = request.POST.get("password")
         user = User.objects.filter(email=email).first()
-        if user is None or user.password!=password:
-            return render(request, "LibraryManagement/login.html",{"message":"tài khoản hoặc mật khẩu không chính xác"})
+        if user is None or user.password != password:
+            return render(request, "LibraryManagement/login.html",
+                          {"message": "tài khoản hoặc mật khẩu không chính xác"})
         else:
-            if user.role.name=="Admin":
-                request.session["user_id"] =user.code
+            if user.role.name == "Admin":
+                request.session["user_id"] = user.code
                 return redirect('home_manager/')
             else:
                 request.session["user_id"] = user.code
                 return render(request, "LibraryManagement/index.html")
-    elif request.method == "GET" :
-        return render(request, "LibraryManagement/login.html",)
+    elif request.method == "GET":
+        return render(request, "LibraryManagement/login.html", )
 
-def send_email(sub,mess,email):
+
+def send_email(sub, mess, email):
     subject = sub
     message = mess
     from_email = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(subject, message, from_email, recipient_list)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def forgot(request):
-    data=request.POST.get("email")
-    if(User.objects.filter(email=data).first() is None):
-        return JsonResponse({"success": False,"message":"email không tồn tại"},status=200)
+    data = request.POST.get("email")
+    if (User.objects.filter(email=data).first() is None):
+        return JsonResponse({"success": False, "message": "email không tồn tại"}, status=200)
     otp = random.randint(100000, 999999)
-    user=User.objects.filter(email=data).first()
+    user = User.objects.filter(email=data).first()
     expiry_time = datetime.now() + timedelta(minutes=5)
     request.session["user_code"] = user.code
     request.session["otp"] = otp
     request.session["otp_expiry"] = expiry_time.strftime("%Y-%m-%d %H:%M:%S")
-    send_email("mã OTP","OTP : "+str(otp),data)
-    return JsonResponse({"success": True},status=200)
+    send_email("mã OTP", "OTP : " + str(otp), data)
+    return JsonResponse({"success": True}, status=200)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def verify_otp(request):
@@ -338,18 +376,24 @@ def verify_otp(request):
 
     # Xóa OTP khỏi session sau khi xác minh thành công
     return JsonResponse({"message": "Xác minh thành công!", "success": True})
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def updatepassword(request):
-    password=request.POST.get("password")
-    user_code=request.session.get("user_code")
+    password = request.POST.get("password")
+    user_code = request.session.get("user_code")
     User.objects.filter(code=user_code).update(password=password)
+
+
 @csrf_exempt
 @require_http_methods(["DELETE"])
-def delete_product(request,product_code=None):
+def delete_product(request, product_code=None):
     product = get_object_or_404(Product, code=product_code)
     product.delete()
     return JsonResponse({"success": True})
+
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def filter_products(request):
@@ -357,15 +401,16 @@ def filter_products(request):
     sort = request.GET.get('sort')
     status = request.GET.get('status')
     search = request.GET.get('search')
-
-
-    # Kiểm tra nếu request không có dữ liệu
-
+    low_stock_products = Product.objects.filter(quantity__lt=30)
+    low_stock_products = low_stock_products.order_by("quantity")
     # Lọc sản phẩm
     products = Product.objects.all()
 
+    # Lọc theo category
     if category:
         products = products.filter(category=category)
+
+    # Lọc theo status
     if status:
         if status == "2":
             products = products.filter(quantity__gte=1)
@@ -373,21 +418,283 @@ def filter_products(request):
             products = products.filter(quantity__lte=20)
         if status == "4":
             products = products.filter(quantity__lte=0)
+
+    # Lọc theo tìm kiếm
     if search:
         products = products.filter(nameProduct__icontains=search)
 
     # Sắp xếp theo sort
     if sort == 'name-asc':
         products = products.order_by('nameProduct')
-    if sort == 'name-desc':
+    elif sort == 'name-desc':
         products = products.order_by('-nameProduct')
-    if sort == "price-asc":
+    elif sort == "price-asc":
         products = products.order_by("sellingPrice")  # Sắp xếp tăng dần
-    if sort == "price-desc":
+    elif sort == "price-desc":
         products = products.order_by("-sellingPrice")  # Sắp xếp giảm dần
 
-    # Trả về JSON để kiểm tra
-    data = list(products.values())
+    # Sắp xếp theo số lượng
+    products = products.order_by('quantity')  # Sắp xếp giảm dần theo quantity
+
+    # Trả về JSON hoặc render kết quả
+
     danhmuc = list(Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category"))
-    return render(request,"LibraryManagement/quanlyproduct.html",{"products":products,"danhmuc":danhmuc})
+    return render(request, "LibraryManagement/quanlyproduct.html", {"products": products, "danhmuc": danhmuc,'sanphamsaphet': low_stock_products})
+
+
+def getuser(request):
+    user = list(User.objects.all())
+    low_stock_products = Product.objects.filter(quantity__lt=30)
+    return render(request, 'LibraryManagement/manage_account.html', {"user": user, "sanphamsaphet": low_stock_products})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def user_filter(request):
+    statusFilter = request.GET.get('status')
+    sortFilter = request.GET.get('sort')
+    search = request.GET.get('search')
+    user_filter = (User.objects.all())
+    if statusFilter == "active":
+        user_filter = user_filter.filter(status='active')
+    if statusFilter == "inactive":
+        user_filter = user_filter.filter(status='inactive')
+    if statusFilter == "pending":
+        user_filter = user_filter.filter(status='')
+    if sortFilter == "name-asc":
+        user_filter = user_filter.order_by('name')
+    if sortFilter == "name-desc":
+        user_filter = user_filter.order_by('-name')
+    if search is not None:
+        user_filter = user_filter.filter(name__icontains=search)
+    user = list(user_filter)
+    return render(request, 'LibraryManagement/manage_account.html', {'user': user})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def adduser(request):
+    name = request.POST.get("name")
+    email = request.POST.get("email")
+    password = request.POST.get("password")
+    status = request.POST.get("status")
+    role = Role.objects.get(name=request.POST.get("role"))
+    user_exists = User.objects.filter(
+        Q(email=email)
+    ).exists()
+    if user_exists:
+        message = "Tài khoản đã tồn tại!"
+        return render(request, 'LibraryManagement/notifi.html', {
+            'message': message,
+            'back_url': '/getuser/'  # Đổi endpoint này tùy vào bạn muốn quay về đâu
+        })
+    str1 = str(uuid.uuid4())
+    User.objects.create(
+        code=str1,
+        name=name,
+        email=email,
+        password=password,
+        status=status,
+        role=role
+    )
+    Log.objects.create(
+        notes="tạo user " + str1,
+        date=datetime.now()
+    )
+
+    return redirect('/getuser/')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def export_user(request):
+    data = json.loads(request.body)
+
+    statusFilter = data.get("status")
+    sortFilter = data.get("sort")
+    search = data.get("search")
+    user_filter = (User.objects.all())
+    if statusFilter == "active":
+        user_filter = user_filter.filter(status='active')
+    if statusFilter == "inactive":
+        user_filter = user_filter.filter(status='inactive')
+    if statusFilter == "pending":
+        user_filter = user_filter.filter(status='')
+    if sortFilter == "name-asc":
+        user_filter = user_filter.order_by('name')
+    if sortFilter == "name-desc":
+        user_filter = user_filter.order_by('-name')
+    if search is not None:
+        user_filter = user_filter.filter(name__icontains=search)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Products"
+
+    # Tiêu đề cột
+    headers = ["ID", "Code", "Name", "address", "phone", "email", "password", "status", "role"]
+    ws.append(headers)
+
+    # Lấy dữ liệu từ database và thêm vào Excel
+    for u in user_filter:
+        ws.append([
+            u.id, u.code, u.name, u.address, u.phone, u.email, u.password, u.status, u.role.name
+        ])
+
+    # Trả về file Excel
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="products.xlsx"'
+    wb.save(response)
+    return response
+
+
+def getuserbyid(request, userid):
+    user = User.objects.get(id=userid)
+    return render(request, 'LibraryManagement/edituser.html', {'user': user})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def updateuser(request):
+    name_request = request.POST.get("name")
+    email_request = request.POST.get("email")
+    password_request = request.POST.get("password")
+    phone_request = request.POST.get("phone")
+    address_request = request.POST.get("address")
+    role_request = request.POST.get("role")
+    role = Role.objects.get(name=role_request)
+    status = request.POST.get("status")
+
+    user = User.objects.get(email=email_request)
+    user.address = address_request
+    user.name = name_request
+    user.email = email_request
+    user.password = password_request
+    user.status = status
+    user.role = role
+    user.phone = phone_request
+    user.save()
+    return redirect('/getuser/')
+
+
+def deleteuser(request, userid):
+    user = User.objects.get(id=userid)
+    user.delete()
+    Log.objects.create(
+        date=datetime.now(),
+        notes="delete user " + userid,
+    )
+    return redirect('/getuser/')
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+def addproduct(request):
+    if request.method == "GET":
+        category = Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
+        kho=list(Kho.objects.all().values())
+        return render(request, 'LibraryManagement/addproduct.html',{'category': category,'kho':kho})
+    elif request.method == "POST":
+        nameProduct = request.POST.get("name")
+        category = request.POST.get("type")
+        importPrice = request.POST.get("importPrice")
+        sellingPrice = request.POST.get("sellingPrice")
+        quantity= request.POST.get("quantity")
+        codeKho=Kho.objects.get(code=request.POST.get("codeKho"))
+        notes=request.POST.get("notes")
+        product=Product.objects.create(
+            nameProduct=nameProduct,
+            category=category,
+            importPrice=importPrice,
+            sellingPrice=sellingPrice,
+            quantity=quantity,
+            codeKho=codeKho,
+            notes=notes,
+        )
+        Log.objects.create(
+            date=datetime.now(),
+            notes="thêm sản phẩm "+nameProduct+str(product.code),
+        )
+        return redirect('/getProduct/')
+def warehouse_managment(request):
+    codeKho = request.GET.get("kho")
+    kho = list(Kho.objects.all().values())
+    product = Product.objects.all()
+
+    tenkho = ""
+    if codeKho is None:
+        tenkho = Kho.objects.first().description
+        product = Product.objects.filter(codeKho=Kho.objects.first().code)
+        product = product.order_by('quantity')  # Gán lại kết quả sau khi sắp xếp
+    else:
+        tenkho = Kho.objects.get(code=codeKho).description
+        product = Product.objects.filter(codeKho=codeKho)
+        product = product.order_by('quantity')  # Gán lại kết quả sau khi sắp xếp
+    return render(request,'LibraryManagement/warehouse_managment.html',{'kho':kho,'product':product,'tenkho':tenkho})
+def exportkho(request):
+    codeKho= request.GET.get('kho')
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Products"
+    product=Product.objects.all()
+    if codeKho :
+        product=Product.objects.filter(codeKho=Kho.objects.first().code)
+    else:
+        product=Product.objects.filter(codeKho=codeKho)
+    # Tiêu đề cột
+    headers = ["id","code", "nameProduct", "category", "importPrice", "sellingPrice", "quantity", "codeKho", "notes"]
+    ws.append(headers)
+
+    # Lấy dữ liệu từ database và thêm vào Excel
+    for u in product:
+        ws.append([
+            u.id, u.code, u.nameProduct, u.category, u.importPrice, u.sellingPrice, u.quantity, u.codeKho.description, u.notes
+        ])
+
+    # Trả về file Excel
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="products.xlsx"'
+    wb.save(response)
+    return response
+def chuyenkho(request,productCode=None):
+    product=Product.objects.get(code=productCode)
+    kho=Kho.objects.all()
+    return render(request,'LibraryManagement/chuyenkho.html',{'product':product,'kho':kho})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def chuyensp(request):
+    data = json.loads(request.body)
+    idProduct = data.get("id")
+    product = Product.objects.get(code=idProduct)
+    newWarehouse = str(data.get("warehouse"))
+    kho=Kho.objects.get(description=newWarehouse)
+    quantity = data.get("quantity")
+    if (product.quantity - int(quantity) < 0):
+        return (JsonResponse({'success': 'sai số lượng'}, status=500))
+    if(kho==product.codeKho):
+        Log.objects.create(
+            date=datetime.now(),
+            notes="sản phẩm vẫn giữ nguyên "+product.nameProduct+" "+str(product.code)
+        )
+        return JsonResponse({'success':True})
+    else:
+        product.quantity=product.quantity-int(quantity)
+        product.save()
+        Product.objects.create(
+            nameProduct=product.nameProduct,
+            category=product.category,
+            importPrice=product.importPrice,
+            sellingPrice=product.sellingPrice,
+            quantity=quantity,
+            codeKho=kho,
+        )
+        Log.objects.create(
+            date=datetime.now(),
+            notes="Sản phẩm được chuyển từ "+str(product.codeKho.description)+" tới "+newWarehouse+" số lượng "+quantity
+        )
+        return JsonResponse({'success':True})
+def quanlynhaphang(request):
+    ncc=NhaCungCap.objects.all()
+    phieunhap=PhieuNhap.objects.all()
+    kho=Kho.objects.all()
+    trangthai=PhieuNhap.objects.raw('select id,status from database_phieunhap group by status')
+    return render(request, 'LibraryManagement/quanlynhaphang.html',{'ncc':ncc,'phieunhap':phieunhap,'kho':kho,'trangthai':trangthai})
 

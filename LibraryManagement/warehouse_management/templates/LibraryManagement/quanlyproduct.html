@@ -626,37 +626,33 @@
 </head>
 <body>
 <!-- Sidebar -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h1><img src="https://via.placeholder.com/32" alt="Logo"> Fashion</h1>
-        <button class="sidebar-close" id="sidebarClose">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    <div class="sidebar-menu">
-        <a href="/home_manager/" class="menu-item">
-            <i class="fas fa-th-large"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="/getProduct/" class="menu-item active">
-            <i class="fas fa-box"></i>
-            <span>Sản phẩm</span>
-        </a>
-        <a href="#" class="menu-item">
-            <i class="fas fa-folder"></i>
-            <span>Danh mục</span>
-        </a>
-        <a href="#" class="menu-item">
-            <i class="fas fa-users"></i>
-            <span>Người dùng</span>
-        </a>
-        <a href="#" class="menu-item">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Đơn hàng</span>
-        </a>
-    </div>
-</div>
-
+{#<div class="sidebar" id="sidebar">#}
+{#    <div class="sidebar-header">#}
+{#        <h1><img src="https://via.placeholder.com/32" alt="Logo"> Fashion</h1>#}
+{#        <button class="sidebar-close" id="sidebarClose">#}
+{#            <i class="fas fa-times"></i>#}
+{#        </button>#}
+{#    </div>#}
+{#    <div class="sidebar-menu">#}
+{#        <a href="/home_manager/" class="menu-item">#}
+{#            <i class="fas fa-th-large"></i>#}
+{#            <span>Dashboard</span>#}
+{#        </a>#}
+{#        <a href="/getProduct/" class="menu-item active">#}
+{#            <i class="fas fa-box"></i>#}
+{#            <span>Sản phẩm</span>#}
+{#        </a>#}
+{#        <a href="/getuser/" class="menu-item">#}
+{#            <i class="fas fa-users"></i>#}
+{#            <span>Người dùng</span>#}
+{#        </a>#}
+{#        <a href="#" class="menu-item">#}
+{#            <i class="fas fa-shopping-cart"></i>#}
+{#            <span>Đơn hàng</span>#}
+{#        </a>#}
+{#    </div>#}
+{#</div>#}
+{% include 'LibraryManagement/basemenu.html' %}
 <!-- Notification Overlay -->
 <div class="notification-overlay" id="notificationOverlay"></div>
 
@@ -728,8 +724,8 @@
                 <label>Danh mục:</label>
                 <select id="categoryFilter">
                     <option value="">Tất cả</option>
-                    {% for item in danhmuc%}
-                        <option value="{{ item.category }}">{{item.category }}</option>
+                    {% for item in danhmuc %}
+                        <option value="{{ item.category }}">{{ item.category }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -775,26 +771,27 @@
 
         <table class="products-table">
             <thead>
-                <tr>
-                    <th>Sản phẩm</th>
-                    <th>Mã SP</th>
-                    <th>Danh mục</th>
-                    <th>Giá nhập</th>
-                    <th>Giá bán</th>
-                    <th>Tồn kho</th>
-                    <th>Thao tác</th>
-                </tr>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Kho</th>
+                <th>Mã SP</th>
+                <th>Danh mục</th>
+                <th>Giá nhập</th>
+                <th>Giá bán</th>
+                <th>Tồn kho</th>
+                <th>Thao tác</th>
+            </tr>
             </thead>
             <tbody>
-                {% for item in products %}
-                    {% if item.quantity < 50 %}
+            {% for item in products %}
+                {% if item.quantity < 50 %}
                     <tr class="product-low">
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 {% if item.image %}
-                                    <img src="{{ item.image.url }}" alt="Ảnh sản phẩm"class="product-image">
+                                    <img src="{{ item.image.url }}" alt="Ảnh sản phẩm" class="product-image">
                                 {% else %}
-                                    <img src="/media/images/default.jpg" alt=""class="product-image">
+                                    <img src="/media/images/default.jpg" alt="" class="product-image">
                                 {% endif %}
                                 <div>
                                     <div class="product-name">{{ item.nameProduct }}</div>
@@ -802,11 +799,16 @@
                                 </div>
                             </div>
                         </td>
+                        {% if item.codeKho %}
+                            <td>{{ item.codeKho.description }}</td>
+                        {% else %}
+                            <td>Chưa rõ</td>
+                        {% endif %}
                         <td>{{ item.code }}</td>
                         <td>{{ item.category }}</td>
                         <td class="product-price">{{ item.importPrice }} đ</td>
                         <td class="product-price">{{ item.sellingPrice }} đ</td>
-                        <td><span class="product-stock product-stock-low">{{ item.quantity }}</span></td>
+                        <td><span class="product-stock product-stock-low">{{ item.quantity }} sản phẩm</span></td>
                         <td>
                             <div class="product-actions">
                                 <div class="action-btn edit-btn">
@@ -818,62 +820,72 @@
                             </div>
                         </td>
                     </tr>
-                    {% elif item.quantity < 70 %}
-                        <tr class="product-medium">
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="https://via.placeholder.com/50" alt="Áo sơ mi nam" class="product-image">
-                                    <div>
-                                        <div class="product-name">{{ item.nameProduct }}</div>
-                                        <div class="product-category">{{ item.category }}</div>
-                                    </div>
+                {% elif item.quantity < 70 %}
+                    <tr class="product-medium">
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="https://via.placeholder.com/50" alt="Áo sơ mi nam" class="product-image">
+                                <div>
+                                    <div class="product-name">{{ item.nameProduct }}</div>
+                                    <div class="product-category">{{ item.category }}</div>
                                 </div>
-                            </td>
-                            <td>{{ item.code }}</td>
-                            <td>{{ item.category }}</td>
-                            <td class="product-price">{{ item.importPrice }} đ</td>
-                            <td class="product-price">{{ item.sellingPrice }} đ</td>
-                            <td><span class="product-stock product-stock-medium">{{ item.quantity }}</span></td>
-                            <td>
-                                <div class="product-actions">
-                                    <div class="action-btn edit-btn">
-                                        <i class="fas fa-edit"></i>
-                                    </div>
-                                    <div class="action-btn delete-btn">
-                                        <i class="fas fa-trash"></i>
-                                    </div>
+                            </div>
+                        </td>
+                        {% if item.codeKho %}
+                            <td>{{ item.codeKho.description }}</td>
+                        {% else %}
+                            <td>Chưa rõ</td>
+                        {% endif %}
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.category }}</td>
+                        <td class="product-price">{{ item.importPrice }} đ</td>
+                        <td class="product-price">{{ item.sellingPrice }} đ</td>
+                        <td><span class="product-stock product-stock-medium">{{ item.quantity }} sản phẩm</span></td>
+                        <td>
+                            <div class="product-actions">
+                                <div class="action-btn edit-btn">
+                                    <i class="fas fa-edit"></i>
                                 </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="https://via.placeholder.com/50" alt="Áo khoác nam" class="product-image">
-                                    <div>
-                                        <div class="product-name">{{ item.nameProduct }}</div>
-                                        <div class="product-category">{{ item.category }}</div>
-                                    </div>
+                                <div class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i>
                                 </div>
-                            </td>
-                            <td>{{ item.code }}</td>
-                            <td>{{ item.category }}</td>
-                            <td class="product-price">{{ item.importPrice }} đ</td>
-                            <td class="product-price">{{ item.sellingPrice }} đ</td>
-                            <td><span class="product-stock">{{ item.quantity }}</span></td>
-                            <td>
-                                <div class="product-actions">
-                                    <div class="action-btn edit-btn">
-                                        <i class="fas fa-edit"></i>
-                                    </div>
-                                    <div class="action-btn delete-btn">
-                                        <i class="fas fa-trash"></i>
-                                    </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="https://via.placeholder.com/50" alt="Áo khoác nam" class="product-image">
+                                <div>
+                                    <div class="product-name">{{ item.nameProduct }}</div>
+                                    <div class="product-category">{{ item.category }}</div>
                                 </div>
-                            </td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
+                            </div>
+                        </td>
+                        {% if item.codeKho %}
+                            <td>{{ item.codeKho.description }}</td>
+                        {% else %}
+                            <td>Chưa rõ</td>
+                        {% endif %}
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.category }}</td>
+                        <td class="product-price">{{ item.importPrice }} đ</td>
+                        <td class="product-price">{{ item.sellingPrice }} đ</td>
+                        <td><span class="product-stock">{{ item.quantity }} sản phẩm</span></td>
+                        <td>
+                            <div class="product-actions">
+                                <div class="action-btn edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <div class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
             </tbody>
         </table>
         <div class="pagination" id="pagination">
@@ -881,7 +893,7 @@
                 {% if item == nowpage %}
                     <div class="pagination-item active" data-page="{{ item }}">{{ item }}</div>
                 {% else %}
-                     <div class="pagination-item " data-page="{{ item }}">{{ item }}</div>
+                    <div class="pagination-item " data-page="{{ item }}">{{ item }}</div>
                 {% endif %}
             {% endfor %}
             <div class="pagination-item" data-page="next">
@@ -939,74 +951,74 @@
     const exportBtn = document.getElementById('exportBtn');
     //export
     exportBtn.addEventListener('click', () => {
-    // Show loading message
-    const loadingMessage = document.createElement('div');
-    loadingMessage.style.position = 'fixed';
-    loadingMessage.style.top = '50%';
-    loadingMessage.style.left = '50%';
-    loadingMessage.style.transform = 'translate(-50%, -50%)';
-    loadingMessage.style.padding = '15px 20px';
-    loadingMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    loadingMessage.style.color = 'white';
-    loadingMessage.style.borderRadius = '5px';
-    loadingMessage.style.zIndex = '2000';
-    loadingMessage.textContent = 'Đang xuất dữ liệu ra file Excel...';
-    document.body.appendChild(loadingMessage);
+        // Show loading message
+        const loadingMessage = document.createElement('div');
+        loadingMessage.style.position = 'fixed';
+        loadingMessage.style.top = '50%';
+        loadingMessage.style.left = '50%';
+        loadingMessage.style.transform = 'translate(-50%, -50%)';
+        loadingMessage.style.padding = '15px 20px';
+        loadingMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        loadingMessage.style.color = 'white';
+        loadingMessage.style.borderRadius = '5px';
+        loadingMessage.style.zIndex = '2000';
+        loadingMessage.textContent = 'Đang xuất dữ liệu ra file Excel...';
+        document.body.appendChild(loadingMessage);
 
-    // Lấy tham số từ URL
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get('category');
-    const status = params.get('status');
-    const sort = params.get('sort');
-    const search = params.get('search');
+        // Lấy tham số từ URL
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category');
+        const status = params.get('status');
+        const sort = params.get('sort');
+        const search = params.get('search');
 
-    // Gửi request export Excel
-    fetch('/export-excel/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            category: category,
-            status: status,
-            sort: sort,
-            search: search
+        // Gửi request export Excel
+        fetch('/export-excel/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                category: category,
+                status: status,
+                sort: sort,
+                search: search
+            })
         })
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob();
-        }
-        throw new Error('Lỗi khi xuất Excel');
-    })
-    .then(blob => {
-        // Tạo file Excel để tải về
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'danh-sach-san-pham.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Lỗi khi xuất Excel');
+            })
+            .then(blob => {
+                // Tạo file Excel để tải về
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'danh-sach-san-pham.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
 
-        // Xóa thông báo loading
-        document.body.removeChild(loadingMessage);
+                // Xóa thông báo loading
+                document.body.removeChild(loadingMessage);
 
-        // Thông báo thành công
-        alert('Xuất file Excel thành công!');
-    })
-    .catch(error => {
-        console.error('Export error:', error);
-        document.body.removeChild(loadingMessage);
-        alert('Có lỗi xảy ra khi xuất Excel: ' + error.message);
+                // Thông báo thành công
+                alert('Xuất file Excel thành công!');
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                document.body.removeChild(loadingMessage);
+                alert('Có lỗi xảy ra khi xuất Excel: ' + error.message);
+            });
     });
-});
 
 
     // Filter button functionality
     const applyFilterBtn = document.getElementById('applyFilterBtn');
-//filter
+    //filter
     applyFilterBtn.addEventListener('click', () => {
         const categoryFilter = document.getElementById('categoryFilter').value;
         const sortFilter = document.getElementById('sortFilter').value;
@@ -1068,7 +1080,7 @@
 
 
     const paginationItems = document.querySelectorAll('.pagination-item');
-// nhảy page
+    // nhảy page
     paginationItems.forEach(item => {
         item.addEventListener('click', () => {
             const page = item.getAttribute('data-page');
@@ -1086,7 +1098,8 @@
             }
         });
     });
-//xem page
+
+    //xem page
     function navigateToPage(page) {
         // Get current URL and parameters
         const url = new URL(window.location.href);
@@ -1101,8 +1114,8 @@
 
     // Search functionality
     const searchInput = document.getElementById('searchInput');
-//tìm kiếm
-    searchInput.addEventListener('keypress', function(e) {
+    //tìm kiếm
+    searchInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
 
@@ -1110,24 +1123,24 @@
             const url = new URL(window.location.href);
             const params = new URLSearchParams();
             const categoryFilter = document.getElementById('categoryFilter').value;
-        const sortFilter = document.getElementById('sortFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
-        const searchQuery = document.getElementById('searchInput').value;
-        if (categoryFilter) {
-            params.append('category', categoryFilter);
-        }
+            const sortFilter = document.getElementById('sortFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchQuery = document.getElementById('searchInput').value;
+            if (categoryFilter) {
+                params.append('category', categoryFilter);
+            }
 
-        if (sortFilter) {
-            params.append('sort', sortFilter);
-        }
+            if (sortFilter) {
+                params.append('sort', sortFilter);
+            }
 
-        if (statusFilter) {
-            params.append('status', statusFilter);
-        }
+            if (statusFilter) {
+                params.append('status', statusFilter);
+            }
 
-        if (searchQuery) {
-            params.append('search', searchQuery);
-        }
+            if (searchQuery) {
+                params.append('search', searchQuery);
+            }
             // Update or add the search parameter
             params.set('search', searchInput.value);
 
@@ -1142,21 +1155,21 @@
     // Edit and Delete button functionality
     const editButtons = document.querySelectorAll('.edit-btn');
     const deleteButtons = document.querySelectorAll('.delete-btn');
-//editproduct
+    //editproduct
     editButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const row = this.closest('tr');
-            const productCode = row.querySelector('td:nth-child(2)').textContent;
+            const productCode = row.querySelector('td:nth-child(3)').textContent;
 
             // Navigate to edit page
             window.location.href = `/editProduct/${productCode}`;
         });
     });
-//xóa sản phẩm
+    //xóa sản phẩm
     deleteButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const row = this.closest('tr');
-            const productCode = row.querySelector('td:nth-child(2)').textContent;
+            const productCode = row.querySelector('td:nth-child(3)').textContent;
             const productName = row.querySelector('.product-name').textContent;
 
             if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${productName}" không?`)) {
@@ -1164,25 +1177,26 @@
                 fetch(`/deleteProduct/${productCode}`, {
                     method: 'DELETE'
                 })
-                .then(response => {
-                    if (response.ok) {
-                        // Remove the row from the table
-                        row.remove();
-                        alert('Xóa sản phẩm thành công!');
-                    } else {
-                        throw new Error('Lỗi khi xóa sản phẩm');
-                    }
-                })
-                .catch(error => {
-                    console.error('Delete error:', error);
-                    alert('Có lỗi xảy ra khi xóa sản phẩm: ' + error.message);
-                });
+                    .then(response => {
+                        if (response.ok) {
+                            // Remove the row from the table
+                            row.remove();
+                            alert('Xóa sản phẩm thành công!');
+                        } else {
+                            throw new Error('Lỗi khi xóa sản phẩm');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Delete error:', error);
+                        alert('Có lỗi xảy ra khi xóa sản phẩm: ' + error.message);
+                    });
             }
         });
     });
     document.querySelector('.add-product-btn').addEventListener('click', () => {
-    window.open('/them-san-pham/');;
-});
+        window.open('/addproduct/');
+        ;
+    });
 </script>
 </body>
 </html>
