@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý phiếu nhập hàng - Hệ thống quản lý</title>
+    <title>Quản lý phiếu xuất hàng - Hệ thống quản lý</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -272,12 +272,12 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .import-table {
+        .export-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .import-table th {
+        .export-table th {
             background-color: #f8f9fa;
             padding: 12px 15px;
             text-align: left;
@@ -286,34 +286,34 @@
             border-bottom: 1px solid #ddd;
         }
 
-        .import-table td {
+        .export-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
             vertical-align: middle;
         }
 
-        .import-table tr:last-child td {
+        .export-table tr:last-child td {
             border-bottom: none;
         }
 
-        .import-table tr:hover {
+        .export-table tr:hover {
             background-color: #f9f9f9;
         }
 
-        .import-code {
+        .export-code {
             font-weight: 500;
             color: #3498db;
         }
 
-        .import-date {
+        .export-date {
             color: #666;
         }
 
-        .import-supplier {
+        .export-customer {
             font-weight: 500;
         }
 
-        .import-warehouse {
+        .export-warehouse {
             display: inline-block;
             padding: 4px 8px;
             border-radius: 20px;
@@ -324,12 +324,12 @@
             border: 1px solid rgba(52, 152, 219, 0.2);
         }
 
-        .import-value {
+        .export-value {
             font-weight: 500;
             color: #2ecc71;
         }
 
-        .import-status {
+        .export-status {
             display: inline-block;
             padding: 4px 8px;
             border-radius: 20px;
@@ -355,11 +355,11 @@
             border: 1px solid rgba(231, 76, 60, 0.2);
         }
 
-        .import-creator {
+        .export-creator {
             color: #666;
         }
 
-        .import-actions {
+        .export-actions {
             display: flex;
             gap: 10px;
         }
@@ -390,15 +390,6 @@
         }
 
         .edit-btn:hover {
-            background-color: #e1e1e1;
-        }
-
-        .delete-btn {
-            background-color: #f1f1f1;
-            color: #e74c3c;
-        }
-
-        .delete-btn:hover {
             background-color: #e1e1e1;
         }
 
@@ -556,7 +547,7 @@
                 overflow-x: auto;
             }
 
-            .import-table {
+            .export-table {
                 min-width: 800px;
             }
         }
@@ -583,43 +574,13 @@
     </div>
 
     <div class="content">
-        <h1 class="page-title">Quản lý nhập hàng</h1><br>
-        <br>
-        <h3 class="page">Nhà cung cấp</h3>
-        <button class="btn btn-success" id="addImportBtnncc">
-            <i class="fas fa-plus"></i>
-            Thêm nhà cung cấp
-        </button>
+        <h1 class="page-title">Quản lý xuất hàng</h1><br>
+
+
         <div class="table-container">
-            <table class="import-table">
-    <thead>
-    <tr>
-        <th>id</th>
-        <th>Code</th>
-        <th>Nhà cung cấp</th>
-        <th>Địa chỉ</th>
-        <th>Số điện thoại</th>
-        <th>Email</th>
+            <table class="export-table">
 
-        <th>Ghi chú</th>
-        <th>Thao tác</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for item in ncc %}
-        <tr data-id="{{ item.code }}">
-            <td class="import-code">{{ item.id }}</td>
-            <td class="import-supplier">{{ item.code }}</td>
-            <td class="import-supplier">{{ item.nameNCC }}</td>
-            <td><span class="import-warehouse">{{ item.addressNCC }}</span></td>
-            <td class="import-value">{{ item.phoneNCC }}</td>
 
-            <td class="import-value">{{ item.emailNCC }}</td>
-            <td>{{ item.notes }}</td>
-            <td><a href="#" onclick="edit({{ item.id }})" class="edit-link">sửa</a></td>
-        </tr>
-    {% endfor %}
-    </tbody>
 </table>
         </div>
         <br>
@@ -652,11 +613,11 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="supplierFilter">Nhà cung cấp</label>
-                    <select id="supplierFilter" class="filter-control">
-                        <option value="">Tất cả nhà cung cấp</option>
-                        {% for item in ncc %}
-                            <option value="{{ item.code }}">{{ item.nameNCC }}</option>
+                    <label for="customerFilter">Khách hàng</label>
+                    <select id="customerFilter" class="filter-control">
+                        <option value="">Tất cả khách hàng</option>
+                        {% for item in kh %}
+                            <option value="{{ item.code }}">{{ item.nameKH }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -671,7 +632,13 @@
                     <input type="date" id="endDate" class="filter-control">
                 </div>
                 <div class="filter-group">
-
+                    <label for="creatorFilter">Người tạo</label>
+                    <select id="creatorFilter" class="filter-control">
+                        <option value="">Tất cả người tạo</option>
+                        {% for item in phieuxuat %}
+                            <option value="{{ item.code }}">{{ item.notes }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
             <div class="filter-buttons">
@@ -690,47 +657,43 @@
         <div class="action-buttons">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Tìm kiếm phiếu nhập..." id="searchInput">
+                <input type="text" placeholder="Tìm kiếm phiếu xuất..." id="searchInput">
             </div>
-            <button class="btn btn-success" id="addImportBtn">
+            <button class="btn btn-success" id="addExportBtn">
                 <i class="fas fa-plus"></i>
-                Tạo phiếu nhập mới
+                Tạo phiếu xuất mới
             </button>
         </div>
 
-        <!-- Import Table -->
+        <!-- Export Table -->
         <div class="table-container">
-            <table class="import-table">
+            <table class="export-table">
                 <thead>
                 <tr>
                     <th>Mã phiếu</th>
-                    <th>Ngày nhập</th>
-                    <th>Nhà cung cấp</th>
-{#                    <th>Kho nhập</th>#}
+                    <th>Ngày xuất</th>
+                    <th>Khách hàng</th>
                     <th>Tổng giá trị</th>
                     <th>Trạng thái</th>
-                    <th>Kho nhập</th>
                     <th>Note</th>
                     <th>Thao tác</th>
                 </tr>
                 </thead>
-                <tbody id="importTableBody">
-                {% for item in phieunhap %}
-                    <tr data-id="{{ item.code }}" data-status="{{ item.status }}" data-supplier="{{ item.codeNCC.code }}" data-date="{{ item.date|date:'Y-m-d' }}" data-creator="{{ item.notes }}">
-                        <td class="import-code">{{ item.code }}</td>
-                        <td class="import-date">{{ item.date }}</td>
-                        <td class="import-supplier">{{ item.codeNCC.nameNCC }}</td>
-{#                        <td><span class="import-warehouse">Kho A</span></td>#}
-                        <td class="import-value">{{ item.totalPrice }} đ</td>
-                        <td><span class="import-status status-{{ item.status }}">{{ item.status }}</span></td>
-                        <td>{{ item.codeKho.description }}</td>
-                        <td class="import-creator">{{ item.notes }}</td>
+                <tbody id="exportTableBody">
+                {% for item in phieuxuat %}
+                    <tr data-id="{{ item.code }}" data-status="{{ item.status }}" data-customer="{{ item.codeKH.code }}" data-date="{{ item.date|date:'Y-m-d' }}" data-creator="{{ item.notes }}">
+                        <td class="export-code">{{ item.code }}</td>
+                        <td class="export-date">{{ item.date }}</td>
+                        <td class="export-customer">{{ item.codeKH.nameKH }}</td>
+                        <td class="export-value">{{ item.totalPrice }} đ</td>
+                        <td><span class="export-status status-{{ item.status }}">{{ item.status }}</span></td>
+                        <td class="export-creator">{{ item.notes }}</td>
                         <td>
-                            <div class="import-actions">
-                                <div class="action-btn view-btn" onclick="viewImport('{{ item.code }}')">
+                            <div class="export-actions">
+                                <div class="action-btn view-btn" onclick="viewExport('{{ item.code }}')">
                                     <i class="fas fa-eye"></i>
                                 </div>
-                                <div class="action-btn edit-btn" onclick="editImport('{{ item.code }}')">
+                                <div class="action-btn edit-btn" onclick="editExport('{{ item.code }}')">
                                     <i class="fas fa-edit"></i>
                                 </div>
                             </div>
@@ -753,27 +716,27 @@
     </div>
 </div>
 
-<!-- View Import Modal -->
-<div class="modal" id="viewImportModal">
+<!-- View Export Modal -->
+<div class="modal" id="viewExportModal">
     <div class="modal-content" style="width: 700px;">
         <div class="modal-header">
-            <div class="modal-title">Chi tiết phiếu nhập</div>
-            <button class="modal-close" id="viewImportModalClose">
+            <div class="modal-title">Chi tiết phiếu xuất</div>
+            <button class="modal-close" id="viewExportModalClose">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="modal-body">
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                 <div>
-                    <p><strong>Mã phiếu:</strong> <span id="viewImportCode">PN001</span></p>
-                    <p><strong>Ngày nhập:</strong> <span id="viewImportDate">15/04/2025</span></p>
-                    <p><strong>Trạng thái:</strong> <span id="viewImportStatus" class="import-status status-completed">Đã hoàn thành</span>
+                    <p><strong>Mã phiếu:</strong> <span id="viewExportCode">PX001</span></p>
+                    <p><strong>Ngày xuất:</strong> <span id="viewExportDate">15/04/2025</span></p>
+                    <p><strong>Trạng thái:</strong> <span id="viewExportStatus" class="export-status status-completed">Đã hoàn thành</span>
                     </p>
                 </div>
                 <div>
-                    <p><strong>Nhà cung cấp:</strong> <span id="viewImportSupplier">Công ty TNHH ABC</span></p>
-                    <p><strong>Kho nhập:</strong> <span id="viewImportWarehouse">Kho A</span></p>
-                    <p><strong>Người tạo:</strong> <span id="viewImportCreator">Admin</span></p>
+                    <p><strong>Khách hàng:</strong> <span id="viewExportCustomer">Công ty TNHH XYZ</span></p>
+                    <p><strong>Kho xuất:</strong> <span id="viewExportWarehouse">Kho A</span></p>
+                    <p><strong>Người tạo:</strong> <span id="viewExportCreator">Admin</span></p>
                 </div>
             </div>
 
@@ -793,42 +756,42 @@
                 <tr>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">Laptop Dell XPS 13</td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">SP001</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">5</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">18,500,000 đ</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">92,500,000 đ</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">2</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">20,500,000 đ</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">41,000,000 đ</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">Điện thoại iPhone 14 Pro</td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">SP002</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">2</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">22,000,000 đ</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">44,000,000 đ</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">1</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">25,000,000 đ</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">25,000,000 đ</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">Tai nghe Sony WH-1000XM4</td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">SP003</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">3</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">5,500,000 đ</td>
-                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">16,500,000 đ</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">2</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">6,500,000 đ</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">13,000,000 đ</td>
                 </tr>
                 </tbody>
                 <tfoot>
                 <tr style="font-weight: bold;">
                     <td colspan="4" style="padding: 10px; text-align: right;">Tổng cộng:</td>
-                    <td style="padding: 10px; text-align: right;">125,000,000 đ</td>
+                    <td style="padding: 10px; text-align: right;">79,000,000 đ</td>
                 </tr>
                 </tfoot>
             </table>
 
             <div style="border-top: 1px solid #eee; padding-top: 15px;">
-                <p><strong>Ghi chú:</strong> <span id="viewImportNotes">Phiếu nhập hàng đợt 1 tháng 4/2025. Đã kiểm tra đầy đủ số lượng và chất lượng sản phẩm.</span>
+                <p><strong>Ghi chú:</strong> <span id="viewExportNotes">Phiếu xuất hàng đợt 1 tháng 4/2025. Đã kiểm tra đầy đủ số lượng và chất lượng sản phẩm.</span>
                 </p>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary" id="printImportBtn">
+            <button class="btn btn-primary" id="printExportBtn">
                 <i class="fas fa-print"></i>
-                In phiếu nhập
+                In phiếu xuất
             </button>
             <button class="btn btn-secondary" id="closeViewBtn">Đóng</button>
         </div>
@@ -864,7 +827,7 @@
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase();
-        const rows = document.querySelectorAll('#importTableBody tr');
+        const rows = document.querySelectorAll('#exportTableBody tr');
 
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
@@ -876,19 +839,19 @@
         });
     });
 
-    // Filter functionality - Sửa lại để nút lọc hoạt động đúng với ngày
+    // Filter functionality
     const applyFilterBtn = document.getElementById('applyFilterBtn');
     const resetFilterBtn = document.getElementById('resetFilterBtn');
 
     applyFilterBtn.addEventListener('click', () => {
         const status = document.getElementById('statusFilter').value;
         const warehouse = document.getElementById('warehouseFilter').value;
-        const supplier = document.getElementById('supplierFilter').value;
+        const customer = document.getElementById('customerFilter').value;
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
         const creator = document.getElementById('creatorFilter').value;
 
-        const rows = document.querySelectorAll('#importTableBody tr');
+        const rows = document.querySelectorAll('#exportTableBody tr');
 
         rows.forEach(row => {
             let display = true;
@@ -898,13 +861,13 @@
                 display = false;
             }
 
-            // Filter by supplier
-            if (supplier && row.getAttribute('data-supplier') !== supplier) {
+            // Filter by customer
+            if (customer && row.getAttribute('data-customer') !== customer) {
                 display = false;
             }
 
             // Filter by creator
-            if (creator && !row.querySelector('.import-creator').textContent.includes(creator)) {
+            if (creator && !row.querySelector('.export-creator').textContent.includes(creator)) {
                 display = false;
             }
 
@@ -936,68 +899,64 @@
     resetFilterBtn.addEventListener('click', () => {
         document.getElementById('statusFilter').value = '';
         document.getElementById('warehouseFilter').value = '';
-        document.getElementById('supplierFilter').value = '';
+        document.getElementById('customerFilter').value = '';
         document.getElementById('startDate').value = '';
         document.getElementById('endDate').value = '';
         document.getElementById('creatorFilter').value = '';
 
         // Show all rows
-        const rows = document.querySelectorAll('#importTableBody tr');
+        const rows = document.querySelectorAll('#exportTableBody tr');
         rows.forEach(row => {
             row.style.display = '';
         });
     });
 
-    // Add Import Button
-    const addImportBtns = document.querySelectorAll('#addImportBtn');
-    addImportBtns.forEach(btn => {
+    // Add Export Button
+    const addExportBtns = document.querySelectorAll('#addExportBtn');
+    addExportBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Redirect to create import page
-            window.location.href = '/create_import/';
-        });
-    });
-        const addImportBtns2 = document.querySelectorAll('#addImportBtnncc');
-    addImportBtns2.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Redirect to create import page
-            window.location.href = '/create_import_ncc/';
+            // Redirect to create export page
+            window.location.href = '/create_export/';
         });
     });
 
-    // View Import Modal
-    const viewImportModal = document.getElementById('viewImportModal');
-    const viewImportModalClose = document.getElementById('viewImportModalClose');
-    const closeViewBtn = document.getElementById('closeViewBtn');
-    const printImportBtn = document.getElementById('printImportBtn');
+    const addExportBtns2 = document.querySelectorAll('#addExportBtnkh');
+    addExportBtns2.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Redirect to create customer page
+            window.location.href = '/create_export_kh/';
+        });
+    });
 
-    function viewImport(importId) {
-        // Redirect to view import page instead of showing modal
-        window.location.href = `/view_import/?id=${importId}`;
+    // View Export functionality
+    function viewExport(exportId) {
+        // Redirect to view export page instead of showing modal
+        window.location.href = `/view_export/?id=${exportId}`;
     }
 
     function closeViewModal() {
-        viewImportModal.classList.remove('active');
+        document.getElementById('viewExportModal').classList.remove('active');
         document.body.style.overflow = '';
     }
 
-    viewImportModalClose.addEventListener('click', closeViewModal);
-    closeViewBtn.addEventListener('click', closeViewModal);
+    document.getElementById('viewExportModalClose').addEventListener('click', closeViewModal);
+    document.getElementById('closeViewBtn').addEventListener('click', closeViewModal);
 
-    printImportBtn.addEventListener('click', () => {
-        const importId = document.getElementById('viewImportCode').textContent;
-        alert(`Đang in phiếu nhập ${importId}...`);
+    document.getElementById('printExportBtn').addEventListener('click', () => {
+        const exportId = document.getElementById('viewExportCode').textContent;
+        alert(`Đang in phiếu xuất ${exportId}...`);
         // In a real application, you would trigger a print function here
     });
 
-    // Edit Import
-    function editImport(importId) {
-        // Redirect to edit import page
-        window.location.href = `/edit_import/?id=${importId}`;
+    // Edit Export
+    function editExport(exportId) {
+        // Redirect to edit export page
+        window.location.href = `/edit_export/?id=${exportId}`;
     }
 
     // Make these functions globally available
-    window.viewImport = viewImport;
-    window.editImport = editImport;
+    window.viewExport = viewExport;
+    window.editExport = editExport;
 
     // Pagination functionality
     const paginationItems = document.querySelectorAll('.pagination-item');

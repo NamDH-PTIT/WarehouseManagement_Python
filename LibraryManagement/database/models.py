@@ -32,6 +32,7 @@ class NhaCungCap(models.Model):
     addressNCC = models.CharField(max_length=20)
     phoneNCC = models.CharField(max_length=20)
     emailNCC = models.CharField(max_length=20)
+    notes = models.TextField(blank=True)
 
 
 class PhieuNhap(models.Model):
@@ -44,6 +45,7 @@ class PhieuNhap(models.Model):
     date = models.DateTimeField()
     totalPrice = models.FloatField()
     notes = models.TextField()
+    codeKho = models.ForeignKey(Kho, to_field='code', on_delete=models.CASCADE, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     codeNCC = models.ForeignKey(NhaCungCap, to_field='code', on_delete=models.CASCADE)
 

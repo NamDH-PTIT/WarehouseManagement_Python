@@ -39,6 +39,12 @@ urlpatterns = [
                   path('chuyenkho/', chuyensp),
                   path('quanlynhaphang/', quanlynhaphang),
                   path('quanlykhachhang/', quanlykhachhang),
-                  path('quanlykhachhang/filter', quanlynhaphang_filter),
+                  path('quanlykhachhang/filter', quanlykhachhang_filter),
                   path('customer_excel/', customer_excel),
+                  path('quanlykhachhang/editcustomer/id=<str:id>', editcustomer),
+                  path('updatecustomer/', updatecustomer),
+                  path('create_import_ncc/', add_ncc),
+
+                  path('quanlyxuathang/', quanlyxuathang),
+
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

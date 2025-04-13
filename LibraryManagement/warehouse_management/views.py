@@ -110,12 +110,11 @@ def addNCC(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def addCustomer(request):
-
-    name=request.POST.get("name")
-    address=request.POST.get("address")
-    phone=request.POST.get("phone")
-    email=request.POST.get("email")
-    status=request.POST.get("status")
+    name = request.POST.get("name")
+    address = request.POST.get("address")
+    phone = request.POST.get("phone")
+    email = request.POST.get("email")
+    status = request.POST.get("status")
     if Customer.objects.filter(email=email).exists():
         return render(request, 'LibraryManagement/notifi.html', {
             'message': 'đã tồn tại ',
@@ -130,6 +129,7 @@ def addCustomer(request):
         status=status
     )
     return redirect('/quanlykhachhang/')
+
 
 @csrf_exempt
 @require_http_methods(["GET"])
@@ -743,22 +743,22 @@ def quanlykhachhang(request):
     })
 
 
-def quanlynhaphang_filter(request):
+def quanlykhachhang_filter(request):
     vip = request.GET.get('status')
     sort = request.GET.get('sort')
     search = request.GET.get('search')
     customer = Customer.objects.all()
     customer = customer.order_by('status')
     if (vip == 'vip 1'):
-        customer=customer.filter(status='vip 1')
+        customer = customer.filter(status='vip 1')
     if (vip == 'vip 2'):
-        customer=customer.filter(status='vip 2')
+        customer = customer.filter(status='vip 2')
     if (vip == 'vip 3'):
-        customer=customer.filter(status='vip 3')
+        customer = customer.filter(status='vip 3')
     if (sort == 'name-asc'):
-        customer=customer.order_by('name')
+        customer = customer.order_by('name')
     if (sort == 'name-desc'):
-        customer=customer.order_by('-name')
+        customer = customer.order_by('-name')
     if search is not None:
         customer = customer.filter(name__icontains=search)
     soluong_raw = PhieuXuat.objects.raw(
@@ -769,40 +769,50 @@ def quanlynhaphang_filter(request):
     for u in customer:
         u.soluong_phieuxuat = soluong_dict.get(u.code, 0)  # 'code' là khóa chính (primary key) của Customer
 
-    return render(request,'LibraryManagement/quanlykhachhang.html',{'user': customer})
+    return render(request, 'LibraryManagement/quanlykhachhang.html', {'user': customer})
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def customer_excel(request):
     data = json.loads(request.body)
 
-    vip=data.get('vip')
-    sort=data.get('sort')
-    search=data.get('search')
+    vip = data.get('vip')
+    sort = data.get('sort')
+    search = data.get('search')
     user_filter = (Customer.objects.all())
-    if statusFilter == "active":
-        user_filter = user_filter.filter(status='active')
-    if statusFilter == "inactive":
-        user_filter = user_filter.filter(status='inactive')
-    if statusFilter == "pending":
-        user_filter = user_filter.filter(status='')
-    if sortFilter == "name-asc":
+    if vip == "vip 1":
+        user_filter = user_filter.filter(status='vip 1')
+    if vip == "vip 2":
+        user_filter = user_filter.filter(status='vip 2')
+    if vip == "vip 3":
+        user_filter = user_filter.filter(status='vip 3')
+    if sort == "name-asc":
         user_filter = user_filter.order_by('name')
-    if sortFilter == "name-desc":
+    if sort == "name-desc":
         user_filter = user_filter.order_by('-name')
     if search is not None:
         user_filter = user_filter.filter(name__icontains=search)
+
+    soluong_raw = PhieuXuat.objects.raw(
+        'SELECT id, customer_id, COUNT(*) as k FROM database_phieuxuat GROUP BY customer_id')
+    soluong_dict = {row.customer_id: row.k for row in soluong_raw}
+
+    # Gán số lượng vào từng user
+    for u in user_filter:
+        u.soluong_phieuxuat = soluong_dict.get(u.code, 0)
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Products"
+    ws.title = "Customer"
 
     # Tiêu đề cột
-    headers = ["ID", "Code", "Name", "address", "phone", "email", "password", "status", "role"]
+    headers = ["ID", "Code", "Name", "address", "phone", "email", "status", "số đơn"]
     ws.append(headers)
 
     # Lấy dữ liệu từ database và thêm vào Excel
     for u in user_filter:
         ws.append([
-            u.id, u.code, u.name, u.address, u.phone, u.email, u.password, u.status, u.role.name
+            u.id, u.code, u.name, u.address, u.phone, u.email, u.status, u.soluong_phieuxuat
         ])
 
     # Trả về file Excel
@@ -810,3 +820,65 @@ def customer_excel(request):
     response["Content-Disposition"] = 'attachment; filename="products.xlsx"'
     wb.save(response)
     return response
+
+
+def editcustomer(request, id=None):
+    customer = Customer.objects.get(id=id)
+    return render(request, 'LibraryManagement/editcustomer.html', {'user': customer})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def updatecustomer(request):
+    id = request.POST.get('id')
+    name = request.POST.get('name')
+    email = request.POST.get('email')
+    phone = request.POST.get('phone')
+    address = request.POST.get('address')
+    status = request.POST.get('status')
+    customer = Customer.objects.get(id=id)
+    customer.name = name
+    customer.email = email
+    customer.phone = phone
+    customer.address = address
+    customer.status = status
+    customer.save()
+    return redirect('/quanlykhachhang/')
+
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+def add_ncc(request):
+
+    if request.method == "GET":
+        return render(request,'LibraryManagement/addncc.html')
+    if request.method =="POST":
+        nameNCC=request.POST.get('nameNCC')
+        addressNCC = request.POST.get('addressNCC')
+        phoneNCC = request.POST.get('phoneNCC')
+        emailNCC = request.POST.get('emailNCC')
+        noteNCC = request.POST.get('note')
+        user_code = request.session.get('user_id','')
+        if NhaCungCap.objects.filter(emailNCC=emailNCC).exists():
+            return render(request, 'LibraryManagement/notifi.html', {
+                'message': 'Nhà cung cấp bị trùng thông tin email',
+                'back_url': '/quanlynhaphang/'
+            })
+        NhaCungCap.objects.create(
+            nameNCC=nameNCC,
+            addressNCC=addressNCC,
+            phoneNCC=phoneNCC,
+            emailNCC=emailNCC,
+            notes=noteNCC,
+        )
+        Log.objects.create(
+            date=datetime.now(),
+            notes='Tạo nhà cung cấp '+str(nameNCC)+" "+str(emailNCC)+' '+str(user_code)
+        )
+        return render(request,'LibraryManagement/quanlyxuathang.html')
+
+
+def quanlyxuathang(request):
+    trangthai=PhieuXuat.objects.raw('select id,status from database_phieuxuat group by status')
+
+    return render(request, 'LibraryManagement/quanlyxuathang.html',{'trangthai':trangthai})

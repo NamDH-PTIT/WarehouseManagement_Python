@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm nhà cung cấp mới</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-control.error {
+            border-color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+
+            .form-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">Thêm nhà cung cấp mới</h1>
+
+        <form id="supplierForm" action="/create_import_ncc/" method="POST">
+            <div class="form-row">
+
+                <div class="form-group">
+                    <label for="supplierName" class="required">Tên nhà cung cấp</label>
+                    <input type="text" id="supplierName" name="nameNCC" class="form-control" required>
+                    <div class="error-message" id="supplierNameError">Vui lòng nhập tên nhà cung cấp</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="supplierAddress" class="required">Địa chỉ</label>
+                    <input type="text" id="supplierAddress" name="addressNCC" class="form-control" required>
+                    <div class="error-message" id="supplierAddressError">Vui lòng nhập địa chỉ</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="supplierPhone" class="required">Số điện thoại</label>
+                    <input type="tel" id="supplierPhone" name="phoneNCC" class="form-control" required pattern="[0-9]{10,11}">
+                    <div class="error-message" id="supplierPhoneError">Vui lòng nhập số điện thoại hợp lệ (10-11 số)</div>
+                </div>
+                <div class="form-group">
+                    <label for="supplierEmail" class="required">Email</label>
+                    <input type="email" id="supplierEmail" name="emailNCC" class="form-control" required>
+                    <div class="error-message" id="supplierEmailError">Vui lòng nhập email hợp lệ</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="supplierNote">Ghi chú</label>
+                    <textarea id="supplierNote" name="note" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">Hủy</button>
+                <button type="submit" class="btn btn-primary" id="saveBtn">Lưu</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Form validation
+        const supplierForm = document.getElementById('supplierForm');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // Show error message
+        function showError(inputId, show) {
+            const errorElement = document.getElementById(`${inputId}Error`);
+            if (errorElement) {
+                errorElement.style.display = show ? 'block' : 'none';
+            }
+
+            const inputElement = document.getElementById(inputId);
+            if (inputElement) {
+                if (show) {
+                    inputElement.classList.add('error');
+                } else {
+                    inputElement.classList.remove('error');
+                }
+            }
+        }
+
+        // Validate form on submit
+        supplierForm.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // Validate supplier code
+            const supplierCode = document.getElementById('supplierCode');
+            if (!supplierCode.value.trim()) {
+                showError('supplierCode', true);
+                isValid = false;
+            } else {
+                showError('supplierCode', false);
+            }
+
+            // Validate supplier name
+            const supplierName = document.getElementById('supplierName');
+            if (!supplierName.value.trim()) {
+                showError('supplierName', true);
+                isValid = false;
+            } else {
+                showError('supplierName', false);
+            }
+
+            // Validate supplier address
+            const supplierAddress = document.getElementById('supplierAddress');
+            if (!supplierAddress.value.trim()) {
+                showError('supplierAddress', true);
+                isValid = false;
+            } else {
+                showError('supplierAddress', false);
+            }
+
+            // Validate supplier phone
+            const supplierPhone = document.getElementById('supplierPhone');
+            const phonePattern = /^[0-9]{10,11}$/;
+            if (!supplierPhone.value.trim() || !phonePattern.test(supplierPhone.value.trim())) {
+                showError('supplierPhone', true);
+                isValid = false;
+            } else {
+                showError('supplierPhone', false);
+            }
+
+            // Validate supplier email
+            const supplierEmail = document.getElementById('supplierEmail');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!supplierEmail.value.trim() || !emailPattern.test(supplierEmail.value.trim())) {
+                showError('supplierEmail', true);
+                isValid = false;
+            } else {
+                showError('supplierEmail', false);
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        // Clear validation on input
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('error');
+                const errorId = `${this.id}Error`;
+                const errorElement = document.getElementById(errorId);
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+            });
+        });
+
+        // Cancel button
+        cancelBtn.addEventListener('click', function() {
+            window.history.back();
+        });
+    </script>
+</body>
+</html>
