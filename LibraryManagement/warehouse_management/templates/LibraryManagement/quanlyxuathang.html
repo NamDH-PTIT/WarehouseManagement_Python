@@ -617,7 +617,7 @@
                     <select id="customerFilter" class="filter-control">
                         <option value="">Tất cả khách hàng</option>
                         {% for item in kh %}
-                            <option value="{{ item.code }}">{{ item.nameKH }}</option>
+                            <option value="{{ item.code }}">{{ item.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -632,13 +632,7 @@
                     <input type="date" id="endDate" class="filter-control">
                 </div>
                 <div class="filter-group">
-                    <label for="creatorFilter">Người tạo</label>
-                    <select id="creatorFilter" class="filter-control">
-                        <option value="">Tất cả người tạo</option>
-                        {% for item in phieuxuat %}
-                            <option value="{{ item.code }}">{{ item.notes }}</option>
-                        {% endfor %}
-                    </select>
+
                 </div>
             </div>
             <div class="filter-buttons">
@@ -684,7 +678,7 @@
                     <tr data-id="{{ item.code }}" data-status="{{ item.status }}" data-customer="{{ item.codeKH.code }}" data-date="{{ item.date|date:'Y-m-d' }}" data-creator="{{ item.notes }}">
                         <td class="export-code">{{ item.code }}</td>
                         <td class="export-date">{{ item.date }}</td>
-                        <td class="export-customer">{{ item.codeKH.nameKH }}</td>
+                        <td class="export-customer">{{ item.customer.name }}</td>
                         <td class="export-value">{{ item.totalPrice }} đ</td>
                         <td><span class="export-status status-{{ item.status }}">{{ item.status }}</span></td>
                         <td class="export-creator">{{ item.notes }}</td>

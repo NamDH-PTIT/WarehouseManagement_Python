@@ -880,5 +880,7 @@ def add_ncc(request):
 
 def quanlyxuathang(request):
     trangthai=PhieuXuat.objects.raw('select id,status from database_phieuxuat group by status')
-
-    return render(request, 'LibraryManagement/quanlyxuathang.html',{'trangthai':trangthai})
+    kh=Customer.objects.all()
+    kho=Kho.objects.all()
+    phieuxuat=PhieuXuat.objects.all()
+    return render(request, 'LibraryManagement/quanlyxuathang.html',{'trangthai':trangthai,'kh':kh,'kho':kho,'phieuxuat':phieuxuat})
