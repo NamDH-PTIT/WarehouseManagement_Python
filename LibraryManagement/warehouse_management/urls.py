@@ -38,5 +38,7 @@ urlpatterns = [
                   path('chuyenkho/productCode=<str:productCode>', chuyenkho),
                   path('chuyenkho/', chuyensp),
                   path('quanlynhaphang/', quanlynhaphang),
-                  path('quanlykhachhang', quanlykhachhang)
+                  path('quanlykhachhang/', quanlykhachhang),
+                  path('quanlykhachhang/filter', quanlynhaphang_filter),
+                  path('customer_excel/', customer_excel),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

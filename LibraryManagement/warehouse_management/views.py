@@ -14,6 +14,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework import status
 from unicodedata import category
 
 from LibraryManagement import settings
@@ -42,7 +43,7 @@ def getAllProducts(request):
 @csrf_exempt
 def editProduct(request, product_id):
     # product = get_object_or_404(Product.objects.values(),code=product_id)
-    product=Product.objects.get(code=product_id)# Tìm sản phẩm theo code, nếu không có thì trả về 404
+    product = Product.objects.get(code=product_id)  # Tìm sản phẩm theo code, nếu không có thì trả về 404
     category = Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
     request.session['product_id'] = product_id
     return render(request, "LibraryManagement/editProduct.html", {"product": product, "category": category})
@@ -109,22 +110,26 @@ def addNCC(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def addCustomer(request):
-    data = json.loads(request.body)
-    customerRequest = data.get("customer")
-    if Customer.objects.filter(name=customerRequest.get("name")).exists():
-        return JsonResponse({"message": "Customer đã tồn tại!", "success": False,
-                             "model": model_to_dict(Customer.objects.get(name=customerRequest.get("name")))},
-                            status=400)
-    customer = Customer.objects.create(
-        name=customerRequest.get("name"),
-        code=customerRequest.get("code"),
-        phone=customerRequest.get("phone"),
-        email=customerRequest.get("email"),
-        address=customerRequest.get("address"),
-    )
-    return JsonResponse(
-        {"message": "Thêm nhà cung cấp thành công", "success": True, "customer": model_to_dict(customer)}, status=200)
 
+    name=request.POST.get("name")
+    address=request.POST.get("address")
+    phone=request.POST.get("phone")
+    email=request.POST.get("email")
+    status=request.POST.get("status")
+    if Customer.objects.filter(email=email).exists():
+        return render(request, 'LibraryManagement/notifi.html', {
+            'message': 'đã tồn tại ',
+            'back_url': '/quanlykhachhang/'  # Đổi endpoint này tùy vào bạn muốn quay về đâu
+        })
+        # return render(request, 'LibraryManagement/quanlykhachhang.html')
+    customer = Customer.objects.create(
+        name=name,
+        phone=phone,
+        email=email,
+        address=address,
+        status=status
+    )
+    return redirect('/quanlykhachhang/')
 
 @csrf_exempt
 @require_http_methods(["GET"])
@@ -233,7 +238,7 @@ def updateProduct(request):
 @require_http_methods(["GET"])
 def home_manager(request):
     low_stock_products = Product.objects.filter(quantity__lt=30)
-    low_stock_products=low_stock_products.order_by("quantity")
+    low_stock_products = low_stock_products.order_by("quantity")
     phieuxuat = PhieuXuat.objects.filter(status="completed")
     loinhuan = 0
     for item in phieuxuat:
@@ -439,7 +444,8 @@ def filter_products(request):
     # Trả về JSON hoặc render kết quả
 
     danhmuc = list(Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category"))
-    return render(request, "LibraryManagement/quanlyproduct.html", {"products": products, "danhmuc": danhmuc,'sanphamsaphet': low_stock_products})
+    return render(request, "LibraryManagement/quanlyproduct.html",
+                  {"products": products, "danhmuc": danhmuc, 'sanphamsaphet': low_stock_products})
 
 
 def getuser(request):
@@ -584,22 +590,24 @@ def deleteuser(request, userid):
         notes="delete user " + userid,
     )
     return redirect('/getuser/')
+
+
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 def addproduct(request):
     if request.method == "GET":
         category = Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
-        kho=list(Kho.objects.all().values())
-        return render(request, 'LibraryManagement/addproduct.html',{'category': category,'kho':kho})
+        kho = list(Kho.objects.all().values())
+        return render(request, 'LibraryManagement/addproduct.html', {'category': category, 'kho': kho})
     elif request.method == "POST":
         nameProduct = request.POST.get("name")
         category = request.POST.get("type")
         importPrice = request.POST.get("importPrice")
         sellingPrice = request.POST.get("sellingPrice")
-        quantity= request.POST.get("quantity")
-        codeKho=Kho.objects.get(code=request.POST.get("codeKho"))
-        notes=request.POST.get("notes")
-        product=Product.objects.create(
+        quantity = request.POST.get("quantity")
+        codeKho = Kho.objects.get(code=request.POST.get("codeKho"))
+        notes = request.POST.get("notes")
+        product = Product.objects.create(
             nameProduct=nameProduct,
             category=category,
             importPrice=importPrice,
@@ -610,9 +618,11 @@ def addproduct(request):
         )
         Log.objects.create(
             date=datetime.now(),
-            notes="thêm sản phẩm "+nameProduct+str(product.code),
+            notes="thêm sản phẩm " + nameProduct + str(product.code),
         )
         return redirect('/getProduct/')
+
+
 def warehouse_managment(request):
     codeKho = request.GET.get("kho")
     kho = list(Kho.objects.all().values())
@@ -627,25 +637,29 @@ def warehouse_managment(request):
         tenkho = Kho.objects.get(code=codeKho).description
         product = Product.objects.filter(codeKho=codeKho)
         product = product.order_by('quantity')  # Gán lại kết quả sau khi sắp xếp
-    return render(request,'LibraryManagement/warehouse_managment.html',{'kho':kho,'product':product,'tenkho':tenkho})
+    return render(request, 'LibraryManagement/warehouse_managment.html',
+                  {'kho': kho, 'product': product, 'tenkho': tenkho})
+
+
 def exportkho(request):
-    codeKho= request.GET.get('kho')
+    codeKho = request.GET.get('kho')
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Products"
-    product=Product.objects.all()
-    if codeKho :
-        product=Product.objects.filter(codeKho=Kho.objects.first().code)
+    product = Product.objects.all()
+    if codeKho:
+        product = Product.objects.filter(codeKho=Kho.objects.first().code)
     else:
-        product=Product.objects.filter(codeKho=codeKho)
+        product = Product.objects.filter(codeKho=codeKho)
     # Tiêu đề cột
-    headers = ["id","code", "nameProduct", "category", "importPrice", "sellingPrice", "quantity", "codeKho", "notes"]
+    headers = ["id", "code", "nameProduct", "category", "importPrice", "sellingPrice", "quantity", "codeKho", "notes"]
     ws.append(headers)
 
     # Lấy dữ liệu từ database và thêm vào Excel
     for u in product:
         ws.append([
-            u.id, u.code, u.nameProduct, u.category, u.importPrice, u.sellingPrice, u.quantity, u.codeKho.description, u.notes
+            u.id, u.code, u.nameProduct, u.category, u.importPrice, u.sellingPrice, u.quantity, u.codeKho.description,
+            u.notes
         ])
 
     # Trả về file Excel
@@ -653,10 +667,13 @@ def exportkho(request):
     response["Content-Disposition"] = 'attachment; filename="products.xlsx"'
     wb.save(response)
     return response
-def chuyenkho(request,productCode=None):
-    product=Product.objects.get(code=productCode)
-    kho=Kho.objects.all()
-    return render(request,'LibraryManagement/chuyenkho.html',{'product':product,'kho':kho})
+
+
+def chuyenkho(request, productCode=None):
+    product = Product.objects.get(code=productCode)
+    kho = Kho.objects.all()
+    return render(request, 'LibraryManagement/chuyenkho.html', {'product': product, 'kho': kho})
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -665,18 +682,18 @@ def chuyensp(request):
     idProduct = data.get("id")
     product = Product.objects.get(code=idProduct)
     newWarehouse = str(data.get("warehouse"))
-    kho=Kho.objects.get(description=newWarehouse)
+    kho = Kho.objects.get(description=newWarehouse)
     quantity = data.get("quantity")
     if (product.quantity - int(quantity) < 0):
         return (JsonResponse({'success': 'sai số lượng'}, status=500))
-    if(kho==product.codeKho):
+    if (kho == product.codeKho):
         Log.objects.create(
             date=datetime.now(),
-            notes="sản phẩm vẫn giữ nguyên "+product.nameProduct+" "+str(product.code)
+            notes="sản phẩm vẫn giữ nguyên " + product.nameProduct + " " + str(product.code)
         )
-        return JsonResponse({'success':True})
+        return JsonResponse({'success': True})
     else:
-        product.quantity=product.quantity-int(quantity)
+        product.quantity = product.quantity - int(quantity)
         product.save()
         Product.objects.create(
             nameProduct=product.nameProduct,
@@ -688,14 +705,108 @@ def chuyensp(request):
         )
         Log.objects.create(
             date=datetime.now(),
-            notes="Sản phẩm được chuyển từ "+str(product.codeKho.description)+" tới "+newWarehouse+" số lượng "+quantity
+            notes="Sản phẩm được chuyển từ " + str(
+                product.codeKho.description) + " tới " + newWarehouse + " số lượng " + quantity
         )
-        return JsonResponse({'success':True})
+        return JsonResponse({'success': True})
+
+
 def quanlynhaphang(request):
-    ncc=NhaCungCap.objects.all()
-    phieunhap=PhieuNhap.objects.all()
-    kho=Kho.objects.all()
-    trangthai=PhieuNhap.objects.raw('select id,status from database_phieunhap group by status')
-    return render(request, 'LibraryManagement/quanlynhaphang.html',{'ncc':ncc,'phieunhap':phieunhap,'kho':kho,'trangthai':trangthai})
+    ncc = NhaCungCap.objects.all()
+    phieunhap = PhieuNhap.objects.all()
+    kho = Kho.objects.all()
+    trangthai = PhieuNhap.objects.raw('select id,status from database_phieunhap group by status')
+    return render(request, 'LibraryManagement/quanlynhaphang.html',
+                  {'ncc': ncc, 'phieunhap': phieunhap, 'kho': kho, 'trangthai': trangthai})
+
+
 def quanlykhachhang(request):
-    
+    ncc = NhaCungCap.objects.all()
+    user = Customer.objects.all().order_by('status')
+
+    # Tạo dictionary từ customer_id -> số lượng phiếu xuất (k)
+    soluong_raw = PhieuXuat.objects.raw(
+        'SELECT id, customer_id, COUNT(*) as k FROM database_phieuxuat GROUP BY customer_id')
+    soluong_dict = {row.customer_id: row.k for row in soluong_raw}
+
+    # Gán số lượng vào từng user
+    for u in user:
+        u.soluong_phieuxuat = soluong_dict.get(u.code, 0)  # 'code' là khóa chính (primary key) của Customer
+
+    # status giữ nguyên nếu bạn cần
+    status = Customer.objects.raw('SELECT id, status FROM database_customer GROUP BY status')
+
+    return render(request, 'LibraryManagement/quanlykhachhang.html', {
+        'ncc': ncc,
+        'user': user,
+        'status': status,
+    })
+
+
+def quanlynhaphang_filter(request):
+    vip = request.GET.get('status')
+    sort = request.GET.get('sort')
+    search = request.GET.get('search')
+    customer = Customer.objects.all()
+    customer = customer.order_by('status')
+    if (vip == 'vip 1'):
+        customer=customer.filter(status='vip 1')
+    if (vip == 'vip 2'):
+        customer=customer.filter(status='vip 2')
+    if (vip == 'vip 3'):
+        customer=customer.filter(status='vip 3')
+    if (sort == 'name-asc'):
+        customer=customer.order_by('name')
+    if (sort == 'name-desc'):
+        customer=customer.order_by('-name')
+    if search is not None:
+        customer = customer.filter(name__icontains=search)
+    soluong_raw = PhieuXuat.objects.raw(
+        'SELECT id, customer_id, COUNT(*) as k FROM database_phieuxuat GROUP BY customer_id')
+    soluong_dict = {row.customer_id: row.k for row in soluong_raw}
+
+    # Gán số lượng vào từng user
+    for u in customer:
+        u.soluong_phieuxuat = soluong_dict.get(u.code, 0)  # 'code' là khóa chính (primary key) của Customer
+
+    return render(request,'LibraryManagement/quanlykhachhang.html',{'user': customer})
+@csrf_exempt
+@require_http_methods(["POST"])
+def customer_excel(request):
+    data = json.loads(request.body)
+
+    vip=data.get('vip')
+    sort=data.get('sort')
+    search=data.get('search')
+    user_filter = (Customer.objects.all())
+    if statusFilter == "active":
+        user_filter = user_filter.filter(status='active')
+    if statusFilter == "inactive":
+        user_filter = user_filter.filter(status='inactive')
+    if statusFilter == "pending":
+        user_filter = user_filter.filter(status='')
+    if sortFilter == "name-asc":
+        user_filter = user_filter.order_by('name')
+    if sortFilter == "name-desc":
+        user_filter = user_filter.order_by('-name')
+    if search is not None:
+        user_filter = user_filter.filter(name__icontains=search)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Products"
+
+    # Tiêu đề cột
+    headers = ["ID", "Code", "Name", "address", "phone", "email", "password", "status", "role"]
+    ws.append(headers)
+
+    # Lấy dữ liệu từ database và thêm vào Excel
+    for u in user_filter:
+        ws.append([
+            u.id, u.code, u.name, u.address, u.phone, u.email, u.password, u.status, u.role.name
+        ])
+
+    # Trả về file Excel
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="products.xlsx"'
+    wb.save(response)
+    return response

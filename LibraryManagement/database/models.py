@@ -61,7 +61,7 @@ class Customer(models.Model):
     address = models.CharField(max_length=20)
     phone = models.CharField(max_length=20)
     email = models.CharField(max_length=20)
-
+    status =models.CharField(max_length=20,blank=True)
 
 class PhieuXuat(models.Model):
     STATUS_CHOICES = [

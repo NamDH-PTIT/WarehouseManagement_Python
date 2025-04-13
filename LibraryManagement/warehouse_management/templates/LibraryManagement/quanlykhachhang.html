@@ -838,37 +838,7 @@
     </style>
 </head>
 <body>
-<!-- Sidebar -->
-{#<div class="sidebar" id="sidebar">#}
-{#    <div class="sidebar-header">#}
-{#        <h1><img src="https://via.placeholder.com/32" alt="Logo"> Fashion</h1>#}
-{#        <button class="sidebar-close" id="sidebarClose">#}
-{#            <i class="fas fa-times"></i>#}
-{#        </button>#}
-{#    </div>#}
-{#    <div class="sidebar-menu">#}
-{#        <a href="#" class="menu-item">#}
-{#            <i class="fas fa-th-large"></i>#}
-{#            <span>Dashboard</span>#}
-{#        </a>#}
-{#        <a href="#" class="menu-item">#}
-{#            <i class="fas fa-box"></i>#}
-{#            <span>Sản phẩm</span>#}
-{#        </a>#}
-{#        <a href="#" class="menu-item">#}
-{#            <i class="fas fa-folder"></i>#}
-{#            <span>Danh mục</span>#}
-{#        </a>#}
-{#        <a href="#" class="menu-item active">#}
-{#            <i class="fas fa-users"></i>#}
-{#            <span>Người dùng</span>#}
-{#        </a>#}
-{#        <a href="#" class="menu-item">#}
-{#            <i class="fas fa-shopping-cart"></i>#}
-{#            <span>Đơn hàng</span>#}
-{#        </a>#}
-{#    </div>#}
-{#</div>#}
+
 {% include 'LibraryManagement/basemenu.html' %}
 <!-- Notification Overlay -->
 
@@ -895,14 +865,14 @@
 
     <div class="users">
         <div class="users-header">
-            <h1 class="users-title">Danh sách người dùng</h1>
+            <h1 class="users-title">Danh sách khách hàng</h1>
             <div class="users-actions">
-                <form id="filterForm" action="/getuser/user_filter" method="GET">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" name="search" placeholder="Tìm kiếm người dùng..." id="searchInput">
-                    <input type="submit" value="tìm kiếm">
-                </div>
+                <form id="filterForm" action="/quanlykhachhang/filter" method="GET">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search" placeholder="Tìm kiếm người dùng..." id="searchInput">
+                        <input type="submit" value="tìm kiếm">
+                    </div>
                 </form>
 
                 <button class="add-user-btn" id="addUserBtn">
@@ -916,15 +886,15 @@
             </div>
         </div>
 
-        <form id="filterForm" action="/getuser/user_filter" method="GET">
+        <form id="filterForm" action="/quanlykhachhang/filter" method="GET">
             <div class="users-filters">
                 <div class="filter-item">
-                    <label>Trạng thái:</label>
+                    <label>Vip:</label>
                     <select id="statusFilter" name="status">
                         <option value="">Tất cả</option>
-                        <option value="active">Hoạt động</option>
-                        <option value="inactive">Không hoạt động</option>
-                        <option value="pending">Chờ xác nhận</option>
+                        <option value="vip 1">vip 1</option>
+                        <option value="vip 2">vip 2</option>
+                        <option value="vip 3">vip 3</option>
                     </select>
                 </div>
                 <div class="filter-item">
@@ -945,15 +915,15 @@
         <div class="status-legend">
             <div class="legend-item">
                 <div class="legend-color legend-active"></div>
-                <div class="legend-text">Hoạt động</div>
+                <div class="legend-text">vip 1(trên 100 sản phẩm)</div>
             </div>
             <div class="legend-item">
                 <div class="legend-color legend-inactive"></div>
-                <div class="legend-text">Không hoạt động</div>
+                <div class="legend-text">vip 2(trên 50 sản phẩm)</div>
             </div>
             <div class="legend-item">
                 <div class="legend-color legend-pending"></div>
-                <div class="legend-text">Chờ xác nhận</div>
+                <div class="legend-text">vip 3(dưới 50 sản phẩm)</div>
             </div>
         </div>
 
@@ -961,11 +931,12 @@
             <thead>
             <tr>
                 <th>ID</th>
+                <th>Mã</th>
                 <th>Người dùng</th>
                 <th>Email</th>
                 <th>Điện thoại</th>
                 <th>Địa chỉ</th>
-                <th>Vai trò</th>
+                <th>Số đơn mua</th>
                 <th>Trạng thái</th>
                 <th>Thao tác</th>
             </tr>
@@ -974,48 +945,47 @@
 
             {% for item in user %}
                 <tr data-id="{{ item.id }}">
-                <td>{{ item.id }}</td>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <td>{{ item.id }}</td>
+                    <td> {{ item.code }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
 
-                        <div class="user-name">{{ item.name }}</div>
-                    </div>
-                </td>
-                <td class="user-email">{{ item.email }}</td>
-                {% if  item.phone  %}
-                	<td> {{ item.phone }}</td>
-                {% else %}
-                    <td>Trống</td>
-                {% endif %}
-                {% if  item.address  %}
-                	<td> {{ item.address }}</td>
-                {% else %}
-                    <td>Trống</td>
-                {% endif %}
-                <td><span class="user-role role-admin">{{ item.role.name }}</span></td>
-                <td>
-                  {% if item.status == 'active' %}
-                    <span class="user-status status-active">Đang hoạt động</span>
-                  {% elif item.status == 'inactive' %}
-                    <span class="user-status status-inactive">Không hoạt động</span>
-                  {% else %}
-                    <span class="user-status status-pending">chưa rõ</span>
-                  {% endif %}
-                </td>
-                <td>
-                    <div class="user-actions">
-                        <div class="action-btn edit-btn" onclick="openEditModal({{ item.id }})">
-                            <i class="fas fa-edit"></i>
+                            <div class="user-name">{{ item.name }}</div>
                         </div>
-                        <div class="action-btn delete-btn" onclick="openDeleteConfirmation({{ item.id }})">
-                            <i class="fas fa-trash"></i>
+                    </td>
+                    <td class="user-email">{{ item.email }}</td>
+                    {% if  item.phone %}
+                        <td> {{ item.phone }}</td>
+                    {% else %}
+                        <td>Trống</td>
+                    {% endif %}
+                    {% if  item.address %}
+                        <td> {{ item.address }}</td>
+                    {% else %}
+                        <td>Trống</td>
+                    {% endif %}
+                    <td><span class="user-role role-admin">{{ item.soluong_phieuxuat }}</span></td>
+
+
+                    <td>
+                        {% if item.status == 'vip 1' %}
+                            <span class="user-status status-active">vip 1</span>
+                        {% elif item.status == 'vip 2' %}
+                            <span class="user-status status-inactive">vip 2</span>
+                        {% else %}
+                            <span class="user-status status-pending">vip 3</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="user-actions">
+                            <div class="action-btn edit-btn" onclick="openEditModal({{ item.id }})">
+                                <i class="fas fa-edit"></i>
+                            </div>
+
                         </div>
-                    </div>
-                </td>
-            </tr>
+                    </td>
+                </tr>
             {% endfor %}
-
-
 
 
             </tbody>
@@ -1044,33 +1014,39 @@
             </button>
         </div>
         <div class="modal-body">
-            <form id="addUserForm" action="/adduser/" method="POST">
+            <form id="addUserForm" action="/addcustomer/" method="POST">
                 <div class="form-group">
                     <label for="addName">Họ tên</label>
                     <input type="text" id="addName" name="name" class="form-control" required>
                 </div>
                 <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="number" id="phone" name="phone" class="form-control" required>
+                </div>
+                <div class="form-group">
                     <label for="addEmail">Email</label>
                     <input type="email" id="addEmail" name="email" class="form-control" required>
                 </div>
-                <div class="form-group">
-                    <label for="addPassword">Mật khẩu</label>
-                    <input type="password" id="addPassword" name="password" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="addRole">Vai trò</label>
 
-                    <input type="text"  name="role" value="User" class="form-control" readonly required>
-                </div>
-                <div class="form-group">
-                    <label for="addStatus">Trạng thái</label>
 
-                    <input type="text" value="active" name="status" class="form-control" readonly required>
-                </div><br>
+                <div class="form-group">
+                    <label for="status">Trạng thái</label>
+                    <select name="status" class="form-control">
+                        <option value="vip 1"> vip 1</option>
+                        <option value="vip 2"> vip 2</option>
+                        <option value="vip 3"> vip 3</option>
+                        <option value="vip 4"> vip 4</option>
+                    </select>
+                </div>
+                <br>
                 <div class="modal-footer">
-            <button class="btn btn-secondary" id="addUserCancelBtn">Hủy</button>
-            <input class="btn btn-primary" id="addUserSaveBtn" type="submit" value="Lưu">
-        </div>
+                    <button class="btn btn-secondary" id="addUserCancelBtn">Hủy</button>
+                    <input class="btn btn-primary" id="addUserSaveBtn" type="submit" value="Lưu">
+                </div>
             </form>
         </div>
 
@@ -1154,87 +1130,84 @@
     });
 
 
-
     // Export to Excel functionality
     const exportBtn = document.getElementById('exportBtn');
     //export
     exportBtn.addEventListener('click', () => {
-    // Show loading message
-    const loadingMessage = document.createElement('div');
-    loadingMessage.style.position = 'fixed';
-    loadingMessage.style.top = '50%';
-    loadingMessage.style.left = '50%';
-    loadingMessage.style.transform = 'translate(-50%, -50%)';
-    loadingMessage.style.padding = '15px 20px';
-    loadingMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    loadingMessage.style.color = 'white';
-    loadingMessage.style.borderRadius = '5px';
-    loadingMessage.style.zIndex = '2000';
-    loadingMessage.textContent = 'Đang xuất dữ liệu ra file Excel...';
-    document.body.appendChild(loadingMessage);
+        // Show loading message
+        const loadingMessage = document.createElement('div');
+        loadingMessage.style.position = 'fixed';
+        loadingMessage.style.top = '50%';
+        loadingMessage.style.left = '50%';
+        loadingMessage.style.transform = 'translate(-50%, -50%)';
+        loadingMessage.style.padding = '15px 20px';
+        loadingMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        loadingMessage.style.color = 'white';
+        loadingMessage.style.borderRadius = '5px';
+        loadingMessage.style.zIndex = '2000';
+        loadingMessage.textContent = 'Đang xuất dữ liệu ra file Excel...';
+        document.body.appendChild(loadingMessage);
 
-    // Lấy tham số từ URL
-    const params = new URLSearchParams(window.location.search);
+        // Lấy tham số từ URL
+        const params = new URLSearchParams(window.location.search);
 
-    const status = params.get('status');
-    const sort = params.get('sort');
-    const search = params.get('search');
+        const status = params.get('status');
+        const sort = params.get('sort');
+        const search = params.get('search');
 
-    // Gửi request export Excel
-    fetch('/user_excel/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            status: status,
-            sort: sort,
-            search: search
+        // Gửi request export Excel
+        fetch('/customer_excel/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                vip: status,
+                sort: sort,
+                search: search
+            })
         })
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob();
-        }
-        throw new Error('Lỗi khi xuất Excel');
-    })
-    .then(blob => {
-        // Tạo file Excel để tải về
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'danh-sach-nhan-vien.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Lỗi khi xuất Excel');
+            })
+            .then(blob => {
+                // Tạo file Excel để tải về
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'danh-sach-khach-hang.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
 
-        // Xóa thông báo loading
-        document.body.removeChild(loadingMessage);
+                // Xóa thông báo loading
+                document.body.removeChild(loadingMessage);
 
-        // Thông báo thành công
-        alert('Xuất file Excel thành công!');
-    })
-    .catch(error => {
-        console.error('Export error:', error);
-        document.body.removeChild(loadingMessage);
-        alert('Có lỗi xảy ra khi xuất Excel: ' + error.message);
+                // Thông báo thành công
+                alert('Xuất file Excel thành công!');
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                document.body.removeChild(loadingMessage);
+                alert('Có lỗi xảy ra khi xuất Excel: ' + error.message);
+            });
     });
-});
 
     // Filter form submission
     const filterForm = document.getElementById('filterForm');
 
 
-
-
     // Search functionality
 
     function openDeleteConfirmation(userid) {
-    if (confirm("Bạn muốn xóa nhân viên " + userid + "?")) {
-        window.location.href = "userdelete/id=" + userid;
+        if (confirm("Bạn muốn xóa nhân viên " + userid + "?")) {
+            window.location.href = "userdelete/id=" + userid;
+        }
     }
-}
 
     // Add User Modal
     const addUserBtn = document.getElementById('addUserBtn');
@@ -1260,7 +1233,6 @@
     addUserCancelBtn.addEventListener('click', closeAddModal);
 
 
-
     // Edit User Modal
     const editUserModal = document.getElementById('editUserModal');
     const editUserModalClose = document.getElementById('editUserModalClose');
@@ -1269,9 +1241,8 @@
     const editUserForm = document.getElementById('editUserForm');
 
     function openEditModal(userId) {
-        if(confirm("bạn muốn sửa user id = "+userId))
-        {
-            window.location.href='edituser/id='+userId;
+        if (confirm("bạn muốn sửa user id = " + userId)) {
+            window.location.href = 'editcustomer/id=' + userId;
         }
     }
 
@@ -1302,27 +1273,27 @@
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            // Giả lập phản hồi từ server
-            alert(`Đã cập nhật thông tin người dùng ${name} thành công!`);
+            .then(response => {
+                // Giả lập phản hồi từ server
+                alert(`Đã cập nhật thông tin người dùng ${name} thành công!`);
 
-            // Cập nhật thông tin người dùng trong database (giả lập)
-            const userIndex = users.findIndex(u => u.id === userId);
-            if (userIndex !== -1) {
-                users[userIndex].name = name;
-                users[userIndex].email = email;
-                users[userIndex].role = role;
-                users[userIndex].status = status;
+                // Cập nhật thông tin người dùng trong database (giả lập)
+                const userIndex = users.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    users[userIndex].name = name;
+                    users[userIndex].email = email;
+                    users[userIndex].role = role;
+                    users[userIndex].status = status;
 
-                // Cập nhật giao diện
-                renderUsers(users);
+                    // Cập nhật giao diện
+                    renderUsers(users);
 
-                closeEditModal();
-            }
-        })
-        .catch(error => {
-            console.error('Lỗi khi gửi form:', error);
-        });
+                    closeEditModal();
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gửi form:', error);
+            });
     });
 
     // Delete Confirmation Dialog
