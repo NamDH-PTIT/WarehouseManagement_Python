@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gửi thông báo đến nhân viên - Hệ thống quản lý</title>
+    <title>Gửi báo cáo đến quản lý - Hệ thống quản lý</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -921,84 +921,65 @@
                 min-width: 800px;
             }
         }
-
     </style>
 </head>
 <body>
 <!-- Sidebar -->
 
-{% include 'LibraryManagement/basemenu.html' %}
-<!-- Main Content -->
-<div class="main-content">
-    <div class="header">
-        <button class="menu-toggle" id="menuToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="header-right">
-            <div class="user-info">
-                <span>Admin</span>
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-            </div>
+<div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1><img src="https://via.placeholder.com/32" alt="Logo"> Quản lý</h1>
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/home" class="menu-item active" data-section="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/addphieunhap/" class="menu-item" data-section="import">
+                <i class="fas fa-file-import"></i>
+                <span>Nhập hàng</span>
+            </a>
+            <a href="/addphieuxuat/" class="menu-item" data-section="export">
+                <i class="fas fa-file-export"></i>
+                <span>Xuất hàng</span>
+            </a>
+            <a href="/baocao/" class="menu-item" data-section="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span>Báo cáo</span>
+            </a>
+            <!-- Logout button at the bottom -->
+            <a href="/logout/" class="menu-item logout-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </a>
         </div>
     </div>
-
     <div class="content">
         <div class="breadcrumb">
             <a href="/dashboard/">Trang chủ</a>
             <span class="separator">/</span>
-            <span>Gửi thông báo</span>
+            <span>Gửi báo cáo</span>
         </div>
 
         <h1 class="page-title">
             <i class="fas fa-paper-plane"></i>
-            Gửi thông báo đến nhân viên
+            Gửi báo cáo đến quản lý
         </h1>
 
         <div class="form-container">
-            <h2 class="form-title">Thông tin thông báo</h2>
+            <h2 class="form-title">Thông tin báo cáo</h2>
 
-            <form id="notificationForm" action="/thongbao/" method="POST">
+            <form id="notificationForm" action="/baocao/" method="POST">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="notificationContent" class="required">Nội dung thông báo</label>
-                        <textarea id="notificationContent" name="content" class="form-control" rows="4" required placeholder="Nhập nội dung thông báo cho nhân viên..."></textarea>
-                        <div class="error-message" id="contentError">Vui lòng nhập nội dung thông báo</div>
+                        <label for="notificationContent" class="required">Nội dung báo cáo</label>
+                        <textarea id="notificationContent" name="content" class="form-control" rows="4" required placeholder="Nhập nội dun báo cáo cho quản lý..."></textarea>
+                        <div class="error-message" id="contentError">Vui lòng nhập nội dung báo cáo</div>
                     </div>
                 </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="recipientType" class="required">Người nhận</label>
-                        <select id="recipientType" name="recipientType" class="form-control" required>
-                            <option value="all">Tất cả nhân viên</option>
-                            <option value="specific">Nhân viên cụ thể</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="employeeSelectContainer" class="employee-select-container">
-                    <h3 style="font-size: 16px; margin-bottom: 10px;">Chọn nhân viên</h3>
-
-
-
-                    <div class="checkbox-group">
-                        <!-- Danh sách nhân viên -->
-                        <select class="checkbox-item" name="user_code" >
-                            {% for item in users %}
-                                <option value="{{ item.code }}">{{ item.name }}</option>
-                            {% endfor %}
-
-                        </select>
-{#                        #}
-                    </div><div class="checkbox-item">
-{#
-
-                </div>
-                    <div class="error-message" id="employeesError">Vui lòng chọn ít nhất một nhân viên</div>
-                </div>
-
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="cancelBtn">
                         <i class="fas fa-times"></i>
@@ -1006,7 +987,7 @@
                     </button>
                     <button type="submit" class="btn btn-success" id="sendBtn">
                         <i class="fas fa-paper-plane"></i>
-                        Gửi thông báo
+                        Gửi báo cáo
                     </button>
                 </div>
             </form>
@@ -1101,7 +1082,7 @@
 
         if (!isValid) {
             e.preventDefault();
-        } else if (!confirm('Bạn có chắc chắn muốn gửi thông báo này?')) {
+        } else if (!confirm('Bạn có chắc chắn muốn gửi báo cáo này?')) {
             e.preventDefault();
         }
     });

@@ -724,10 +724,11 @@
 
         // Cancel button
         document.getElementById('cancelBtn').addEventListener('click', function() {
-            if (confirm('Bạn có chắc chắn muốn hủy tạo phiếu nhập? Mọi thông tin sẽ không được lưu.')) {
-                window.location.href = '/';
-            }
-        });
+    if (confirm('Bạn có chắc chắn muốn hủy tạo phiếu nhập? Mọi thông tin sẽ không được lưu.')) {
+        window.history.back();  // Trở về trang trước đó
+    }
+});
+
 
         // Form validation
         document.getElementById('importForm').addEventListener('submit', function(e) {

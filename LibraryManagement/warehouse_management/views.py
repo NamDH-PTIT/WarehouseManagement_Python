@@ -14,6 +14,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from openpyxl.styles.builtins import total
 from rest_framework import status
 from unicodedata import category
 
@@ -49,21 +50,21 @@ def editProduct(request, product_id):
     return render(request, "LibraryManagement/editProduct.html", {"product": product, "category": category})
 
 
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 @csrf_exempt
 def addPhieuNhap(request):
     if request.method == "GET":
-        ncc=NhaCungCap.objects.all()
-        kho=Kho.objects.all()
+        ncc = NhaCungCap.objects.all()
+        kho = Kho.objects.all()
         category = Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
-        return render(request, "LibraryManagement/addPhieuNhap.html",{"ncc": ncc, "kho": kho, "category": category})
+        return render(request, "LibraryManagement/addPhieuNhap.html", {"ncc": ncc, "kho": kho, "category": category})
 
-    ncc=request.POST.get("supplier")
+    ncc = request.POST.get("supplier")
     date = datetime.strptime(request.POST.get("date"), '%Y-%m-%d').date()
     warehouse = Kho.objects.get(code=request.POST.get("warehouse"))
-    notes=request.POST.get("notes")
-    productdata=json.loads(request.POST.get("productData"))
-    totalprice=request.POST.get("totalAmount")
+    notes = request.POST.get("notes")
+    productdata = json.loads(request.POST.get("productData"))
+    totalprice = request.POST.get("totalAmount")
     try:
         with transaction.atomic():
             # nccRequest = data.get("nameNCC")
@@ -83,16 +84,16 @@ def addPhieuNhap(request):
             )
             user = User.objects.filter(code=request.session.get('user_id')).first()
             if user is not None:
-                log=Log.objects.create(
+                log = Log.objects.create(
                     date=datetime.now(),
-                    notes='tạo phiếu nhập '+str(phieuNhap.code)
+                    notes='tạo phiếu nhập ' + str(phieuNhap.code)
                 )
                 if user.role.name == 'Admin':
-                    log.user='Admin'
-                    phieuNhap.status='completed'
+                    log.user = 'Admin'
+                    phieuNhap.status = 'completed'
 
                 else:
-                    log.user= request.session.get('user_id')
+                    log.user = request.session.get('user_id')
                 log.save()
                 phieuNhap.save()
             for item in productdata:
@@ -348,38 +349,24 @@ def login(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
-        user=User.objects.get(email=email)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return render(request, "LibraryManagement/login.html",
+                          {'message': 'tài khoản hoặc mật khẩu không chính xác'})
         if user.password == password:
             request.session["user_id"] = user.code
             if user.role.name == "Admin":
                 return redirect("/home_manager")
+            elif user.role.name == "User":
+                return redirect("/home")
             else:
                 return render(request, "LibraryManagement/test.html")
-
         else:
             return render(request, "LibraryManagement/login.html",
-                              {"message": "tài khoản hoặc mật khẩu không chính xác"})
-        # if "user_id" in request.session:
-        #     user = User.objects.get(code=request.session["user_id"])
-        #     if user.role.name == "Admin":
-        #         return redirect('home_manager/')
-        #     elif user.role.name == "User":
-        #         return render(request, "LibraryManagement/index.html")
-        # email = request.POST.get("email")
-        # password = request.POST.get("password")
-        # user = User.objects.filter(email=email).first()
-        # if user is None or user.password != password:
-        #     return render(request, "LibraryManagement/login.html",
-        #                   {"message": "tài khoản hoặc mật khẩu không chính xác"})
-        # else:
-        #     if user.role.name == "Admin":
-        #         request.session["user_id"] = user.code
-        #         return redirect('home_manager/')
-        #     else:
-        #         request.session["user_id"] = user.code
-        #         return render(request, "LibraryManagement/index.html")
+                          {"message": "tài khoản hoặc mật khẩu không chính xác"})
+
     elif request.method == "GET":
-        return render(request, "LibraryManagement/login.html", )
+        return render(request, "LibraryManagement/login.html")
 
 
 def send_email(sub, mess, email):
@@ -677,7 +664,7 @@ def warehouse_managment(request):
         product = product.order_by('quantity')  # Gán lại kết quả sau khi sắp xếp
     else:
         tenkho = Kho.objects.get(code=codeKho).description
-        product = Product.objects.filter(codeKho=codeKho)
+        product = Product.objects.filter(codeKho=Kho.objects.get(code=codeKho))
         product = product.order_by('quantity')  # Gán lại kết quả sau khi sắp xếp
     return render(request, 'LibraryManagement/warehouse_managment.html',
                   {'kho': kho, 'product': product, 'tenkho': tenkho})
@@ -689,10 +676,12 @@ def exportkho(request):
     ws = wb.active
     ws.title = "Products"
     product = Product.objects.all()
+
     if codeKho:
-        product = Product.objects.filter(codeKho=Kho.objects.first().code)
+        product = Product.objects.filter(codeKho=Kho.objects.get(code=codeKho))
     else:
-        product = Product.objects.filter(codeKho=codeKho)
+        product = Product.objects.filter(codeKho=Kho.objects.first().code)
+    product = product.order_by('quantity')
     # Tiêu đề cột
     headers = ["id", "code", "nameProduct", "category", "importPrice", "sellingPrice", "quantity", "codeKho", "notes"]
     ws.append(headers)
@@ -889,18 +878,17 @@ def updatecustomer(request):
 
 
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 def add_ncc(request):
-
     if request.method == "GET":
-        return render(request,'LibraryManagement/addncc.html')
-    if request.method =="POST":
-        nameNCC=request.POST.get('nameNCC')
+        return render(request, 'LibraryManagement/addncc.html')
+    if request.method == "POST":
+        nameNCC = request.POST.get('nameNCC')
         addressNCC = request.POST.get('addressNCC')
         phoneNCC = request.POST.get('phoneNCC')
         emailNCC = request.POST.get('emailNCC')
         noteNCC = request.POST.get('note')
-        user_code = request.session.get('user_id','')
+        user_code = request.session.get('user_id', '')
         if NhaCungCap.objects.filter(emailNCC=emailNCC).exists():
             return render(request, 'LibraryManagement/notifi.html', {
                 'message': 'Nhà cung cấp bị trùng thông tin email',
@@ -915,28 +903,30 @@ def add_ncc(request):
         )
         Log.objects.create(
             date=datetime.now(),
-            notes='Tạo nhà cung cấp '+str(nameNCC)+" "+str(emailNCC)+' '+str(user_code)
+            notes='Tạo nhà cung cấp ' + str(nameNCC) + " " + str(emailNCC) + ' ' + str(user_code)
         )
-        return render(request,'LibraryManagement/quanlyxuathang.html')
+        return render(request, 'LibraryManagement/quanlyxuathang.html')
 
 
 def quanlyxuathang(request):
-    trangthai=PhieuXuat.objects.raw('select id,status from database_phieuxuat group by status')
-    kh=Customer.objects.all()
-    kho=Kho.objects.all()
-    phieuxuat=PhieuXuat.objects.all()
-    return render(request, 'LibraryManagement/quanlyxuathang.html',{'trangthai':trangthai,'kh':kh,'kho':kho,'phieuxuat':phieuxuat})
+    trangthai = PhieuXuat.objects.raw('select id,status from database_phieuxuat group by status')
+    kh = Customer.objects.all()
+    kho = Kho.objects.all()
+    phieuxuat = PhieuXuat.objects.all()
+    return render(request, 'LibraryManagement/quanlyxuathang.html',
+                  {'trangthai': trangthai, 'kh': kh, 'kho': kho, 'phieuxuat': phieuxuat})
+
 
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 def thongbao(request):
     if request.method == "GET":
         users = User.objects.exclude(role__name='Admin')
-        return render(request,'LibraryManagement/thongbao.html',{'users':users})
-    elif request.method =="POST":
-        content=request.POST.get('content')
-        recipientType=request.POST.get('recipientType')
-        user=request.POST.get('user_code')
+        return render(request, 'LibraryManagement/thongbao.html', {'users': users})
+    elif request.method == "POST":
+        content = request.POST.get('content')
+        recipientType = request.POST.get('recipientType')
+        user = request.POST.get('user_code')
         if recipientType == 'specific':
             Log.objects.create(
                 date=datetime.now(),
@@ -949,4 +939,95 @@ def thongbao(request):
                 notes=content,
                 user=recipientType
             )
-        return render(request,'LibraryManagement/thongbao.html')
+        return render(request, 'LibraryManagement/thongbao.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def chitietphieunhap(request, id):
+    phieunhap = PhieuNhap.objects.get(code=id)
+    chitietphieunhap = ChiTietPhieuNhap.objects.filter(codePhieuNhap=phieunhap)
+    ncc=Kho.objects.all()
+    return render(request, 'LibraryManagement/chitietphieunhap.html',
+                  {'phieunhap': phieunhap, 'chitietphieunhap': chitietphieunhap,'ncc': ncc})
+
+
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def update_phieunhap(request):
+    data = json.loads(request.body)
+    status = data.get('status')
+    code = data.get('code')
+    date = data.get('date')
+    ncc = NhaCungCap.objects.get(nameNCC=data.get('supplier'))
+    warehouse = Kho.objects.get(description=data.get('warehouse'))
+    notes = data.get('note')
+    phieunhap = PhieuNhap.objects.get(code=code)
+    phieunhap.status = status
+    phieunhap.date = date_obj = datetime.strptime(date, "%B %d, %Y, midnight")
+    phieunhap.notes = notes
+    phieunhap.codeNCC = ncc
+    phieunhap.codeKho = warehouse
+    product = data.get('products')
+    chitietphieunhap = ChiTietPhieuNhap.objects.filter(codePhieuNhap=phieunhap)
+    total=0
+    for item in product:
+        for x in chitietphieunhap:
+            if item['code'] == x.codeProduct.code:
+
+                x.codeProduct.quantity=item['quantity']
+                x.quantity = item['quantity']
+                total=total+(item['quantity']*item['importPrice'])
+                x.importPrice=item['importPrice']
+                x.codeProduct.importPrice=item['importPrice']
+                x.codeProduct.save()
+                x.save()
+
+    phieunhap.totalPrice=total
+    phieunhap.save()
+    Log.objects.create(
+        date=datetime.now(),
+        notes='Admin cập nhật phiếu nhập '+str(code),
+    )
+    return JsonResponse({'status': True})
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def baocao(request):
+    if request.method == "GET":
+        return render(request,'LibraryManagement/nvbaocao.html')
+    content=request.POST.get('content')
+    send_email('báo cáo',content,'hainam26112003@gmail.com')
+    Log.objects.create(
+        date=datetime.now(),
+        notes='nhân viên gửi mail báo cáo'
+    )
+    return render(request,'LibraryManagement/nvbaocao.html')
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def logout(request):
+    request.session.flush()
+    return redirect('/')
+def user_login(request):
+    user_id=request.session["user_id"]
+    user=User.objects.filter(code=user_id)
+    products = Product.objects.all()
+    productsaphet = Product.objects.filter(quantity__lt=20)
+    phieunhap = PhieuNhap.objects.order_by("-date")[:12]
+    nhiemvu = Log.objects.filter(Q(user='all') | Q(user='user')).order_by("-date")[:4]
+    phieuxuat = PhieuXuat.objects.order_by("-date")[:12]
+    phieuxuatpending = PhieuXuat.objects.filter(status="pending").count()
+    kho = Product.objects.raw(
+        'SELECT id,codeKho_id, COUNT(*) AS so_luong_san_pham  FROM database_product  GROUP BY codeKho_id')
+    total = 0
+    hoatdong1 = Log.objects.all().order_by("-date")[:1]
+    hoatdong2 = Log.objects.all().order_by("-date")[1:2]
+    hoatdong3 = Log.objects.all().order_by("-date")[2:3]
+    hoatdong4 = Log.objects.all().order_by("-date")[3:4]
+    for item in products:
+        total = total + (item.quantity * item.importPrice)
+    return render(request, "LibraryManagement/user.html",
+                  {'user': user, 'total': total, 'nhiemvu': nhiemvu, 'phieunhap': phieunhap,
+                   'phieuxuat': phieuxuat, 'products': products.count(),
+                   'productsaphet': productsaphet.count(), 'phieuxuatpending': phieuxuatpending, 'kho': kho,
+                   'hoatdong1': hoatdong1, 'hoatdong2': hoatdong2, 'hoatdong3': hoatdong3,
+                   'hoatdong4': hoatdong4})

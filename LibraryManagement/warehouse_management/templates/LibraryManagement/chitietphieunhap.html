@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết phiếu nhập - Hệ thống quản lý</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: #f1f1f1;
+            color: #333;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background-color: #e1e1e1;
+        }
+
+        .back-btn i {
+            margin-right: 8px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .page-title .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.2);
+        }
+
+        .status-completed {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .status-canceled {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+
+        .detail-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .detail-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .detail-label {
+            width: 150px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .detail-value {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .detail-value.price {
+            color: #2ecc71;
+        }
+
+        .detail-value.status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .product-table th {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .product-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .product-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .product-name {
+            font-weight: 500;
+        }
+
+        .product-code {
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .product-price {
+            color: #2ecc71;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .product-quantity {
+            text-align: center;
+        }
+
+        .product-total {
+            color: #2ecc71;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .total-row {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        .total-row td {
+            padding: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .detail-row {
+                flex-direction: column;
+            }
+
+            .detail-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .product-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <button class="back-btn" onclick="window.location.href='/quanlynhaphang/'">
+      <i class="fas fa-arrow-left"></i> Quay lại
+    </button>
+
+    <h1 class="page-title">
+      Chi tiết phiếu nhập
+      <span class="status status-pending" contenteditable="true">{{ phieunhap.status }}</span>
+    </h1>
+
+    <div class="detail-card">
+      <div class="detail-header">
+        <div class="detail-icon"><i class="fas fa-file-invoice"></i></div>
+        <div class="detail-title">Thông tin phiếu nhập</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Mã phiếu</div>
+        <div class="detail-value">
+          <input type="text" readonly value="{{ phieunhap.code }}" />
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Ngày nhập</div>
+        <div class="detail-value">
+          <input type="text" readonly value="{{ phieunhap.date }}" />
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Nhà cung cấp</div>
+        <div class="detail-value">
+          <input type="text" readonly value="{{ phieunhap.codeNCC.nameNCC }}" />
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Kho nhập</div>
+        <div class="detail-value">
+          <input type="text" readonly value="{{ phieunhap.codeKho.description }}" />
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Ghi chú</div>
+        <div class="detail-value">
+          <input type="text" value="{{ phieunhap.notes }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-header">
+        <div class="detail-icon"><i class="fas fa-box-open"></i></div>
+        <div class="detail-title">Danh sách sản phẩm</div>
+      </div>
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>Tên sản phẩm</th>
+            <th>Mã SP</th>
+            <th>Loại</th>
+            <th style="text-align:center;">Số lượng</th>
+            <th style="text-align:right;">Giá nhập</th>
+            <th style="text-align:right;">Thành tiền</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in chitietphieunhap %}
+            <tr>
+              <td class="product-name">{{ item.codeProduct.nameProduct }}</td>
+              <td class="product-code">{{ item.codeProduct.code }}</td>
+              <td>{{ item.codeProduct.category }}</td>
+              <td class="product-quantity">
+                <input type="number" value="{{ item.quantity }}" />
+              </td>
+              <td class="product-price">
+                <input type="number" value="{{ item.importPrice }}" />
+              </td>
+              <td class="product-total">
+                <span class="import-price" data-price="{{ item.importPrice }}" data-qty="{{ item.quantity }}"></span>đ
+              </td>
+            </tr>
+          {% endfor %}
+          <tr class="total-row">
+            <td colspan="5" style="text-align: right;">Tổng cộng:</td>
+            <td class="product-total">{{ phieunhap.totalPrice }} đ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn btn-secondary" onclick="window.location.href='/quanlynhaphang/'">
+      <i class="fas fa-times"></i> Đóng
+    </button>
+    <button class="btn btn-primary" onclick="printDetails()">
+      <i class="fas fa-print"></i> In phiếu nhập
+    </button>
+    <button class="btn btn-primary" onclick="saveChanges()">
+      <i class="fas fa-save"></i> Lưu thay đổi
+    </button>
+  </div>
+
+  <script>
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('vi-VN').format(num) + ' đ';
+    }
+
+    function updateTotal(row) {
+      const qtyInput = row.querySelector('input[type="number"]');
+      const priceInput = row.querySelectorAll('input[type="number"]')[1];
+      const totalCell = row.querySelector('.product-total');
+
+      const qty = parseInt(qtyInput.value) || 0;
+      const price = parseFloat(priceInput.value) || 0;
+      const total = qty * price;
+      totalCell.textContent = formatCurrency(total);
+      updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+      const rows = document.querySelectorAll('.product-table tbody tr:not(.total-row)');
+      let grandTotal = 0;
+      rows.forEach(row => {
+        const qty = parseInt(row.querySelector('input[type="number"]')?.value || 0);
+        const price = parseFloat(row.querySelectorAll('input[type="number"]')[1]?.value || 0);
+        grandTotal += qty * price;
+      });
+      document.querySelector('.total-row .product-total').textContent = formatCurrency(grandTotal);
+    }
+
+    function printDetails() {
+      window.print();
+    }
+
+    function saveChanges() {
+      const products = [];
+      const rows = document.querySelectorAll('.product-table tbody tr:not(.total-row)');
+
+      rows.forEach(row => {
+        const name = row.cells[0].textContent.trim();
+        const code = row.cells[1].textContent.trim();
+        const category = row.cells[2].textContent.trim();
+        const qty = parseInt(row.querySelector('input[type="number"]')?.value || 0);
+        const price = parseFloat(row.querySelectorAll('input[type="number"]')[1]?.value || 0);
+        products.push({ name, code, category, quantity: qty, importPrice: price });
+      });
+
+      const data = {
+        status: document.querySelector('.status')?.textContent.trim(),
+        code: document.querySelectorAll('.detail-value input')[0]?.value.trim(),
+        date: document.querySelectorAll('.detail-value input')[1]?.value.trim(),
+        supplier: document.querySelectorAll('.detail-value input')[2]?.value.trim(),
+        warehouse: document.querySelectorAll('.detail-value input')[3]?.value.trim(),
+        note: document.querySelectorAll('.detail-value input')[4]?.value.trim(),
+        products
+      };
+
+      fetch('/update_phieunhap/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.ok ? alert('Lưu thành công!') : Promise.reject('Có lỗi xảy ra'))
+      .catch(err => alert(err));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.product-table tbody tr:not(.total-row)').forEach(row => {
+        const inputs = row.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+          input.addEventListener('input', () => updateTotal(row));
+        });
+      });
+      updateGrandTotal();
+    });
+  </script>
+</body>
+
+</html>

@@ -44,9 +44,12 @@ urlpatterns = [
                   path('quanlykhachhang/editcustomer/id=<str:id>', editcustomer),
                   path('updatecustomer/', updatecustomer),
                   path('create_import_ncc/', add_ncc),
-
-                   path('thongbao/',thongbao) ,
-
+                  path('chitietphieunhap/id=<str:id>', chitietphieunhap),
+                  path('thongbao/', thongbao),
+                  path('update_phieunhap/', update_phieunhap),
                   path('quanlyxuathang/', quanlyxuathang),
+                  path('baocao/', baocao),
+                  path('logout/', logout),
+                    path('home/', user_login),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
