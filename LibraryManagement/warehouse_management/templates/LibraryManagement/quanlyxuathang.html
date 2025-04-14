@@ -309,10 +309,6 @@
             color: #666;
         }
 
-        .export-customer {
-            font-weight: 500;
-        }
-
         .export-warehouse {
             display: inline-block;
             padding: 4px 8px;
@@ -575,15 +571,8 @@
 
     <div class="content">
         <h1 class="page-title">Quản lý xuất hàng</h1><br>
-
-
-        <div class="table-container">
-            <table class="export-table">
-
-
-</table>
-        </div>
         <br>
+
         <!-- Filter Section -->
         <div class="filter-section">
             <div class="filter-row">
@@ -604,20 +593,11 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="warehouseFilter">Kho hàng</label>
-                    <select id="warehouseFilter" class="filter-control">
-                        <option value="">Tất cả kho</option>
-                        {% for item in kho %}
-                            <option value="{{ item.code }}">{{ item.description }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="customerFilter">Khách hàng</label>
-                    <select id="customerFilter" class="filter-control">
-                        <option value="">Tất cả khách hàng</option>
-                        {% for item in kh %}
-                            <option value="{{ item.code }}">{{ item.name }}</option>
+                    <label for="creatorFilter">Note</label>
+                    <select id="creatorFilter" class="filter-control">
+                        <option value="">Tất cả note</option>
+                        {% for item in phieuxuat %}
+                            <option value="{{ item.notes }}">{{ item.notes }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -631,9 +611,7 @@
                     <label for="endDate">Đến ngày</label>
                     <input type="date" id="endDate" class="filter-control">
                 </div>
-                <div class="filter-group">
 
-                </div>
             </div>
             <div class="filter-buttons">
                 <button class="btn btn-secondary" id="resetFilterBtn">
@@ -666,7 +644,6 @@
                 <tr>
                     <th>Mã phiếu</th>
                     <th>Ngày xuất</th>
-                    <th>Khách hàng</th>
                     <th>Tổng giá trị</th>
                     <th>Trạng thái</th>
                     <th>Note</th>
@@ -675,10 +652,9 @@
                 </thead>
                 <tbody id="exportTableBody">
                 {% for item in phieuxuat %}
-                    <tr data-id="{{ item.code }}" data-status="{{ item.status }}" data-customer="{{ item.codeKH.code }}" data-date="{{ item.date|date:'Y-m-d' }}" data-creator="{{ item.notes }}">
+                    <tr data-id="{{ item.code }}" data-status="{{ item.status }}" data-date="{{ item.date|date:'Y-m-d' }}" data-creator="{{ item.notes }}">
                         <td class="export-code">{{ item.code }}</td>
                         <td class="export-date">{{ item.date }}</td>
-                        <td class="export-customer">{{ item.customer.name }}</td>
                         <td class="export-value">{{ item.totalPrice }} đ</td>
                         <td><span class="export-status status-{{ item.status }}">{{ item.status }}</span></td>
                         <td class="export-creator">{{ item.notes }}</td>
@@ -728,8 +704,6 @@
                     </p>
                 </div>
                 <div>
-                    <p><strong>Khách hàng:</strong> <span id="viewExportCustomer">Công ty TNHH XYZ</span></p>
-                    <p><strong>Kho xuất:</strong> <span id="viewExportWarehouse">Kho A</span></p>
                     <p><strong>Người tạo:</strong> <span id="viewExportCreator">Admin</span></p>
                 </div>
             </div>
@@ -833,77 +807,68 @@
         });
     });
 
-    // Filter functionality
-    const applyFilterBtn = document.getElementById('applyFilterBtn');
-    const resetFilterBtn = document.getElementById('resetFilterBtn');
+    // Filter functionality - Sửa lại để nút lọc hoạt động đúng
+const applyFilterBtn = document.getElementById('applyFilterBtn');
+const resetFilterBtn = document.getElementById('resetFilterBtn');
 
-    applyFilterBtn.addEventListener('click', () => {
-        const status = document.getElementById('statusFilter').value;
-        const warehouse = document.getElementById('warehouseFilter').value;
-        const customer = document.getElementById('customerFilter').value;
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const creator = document.getElementById('creatorFilter').value;
+applyFilterBtn.addEventListener('click', () => {
+    const status = document.getElementById('statusFilter').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const noteFilter = document.getElementById('creatorFilter').value;
 
-        const rows = document.querySelectorAll('#exportTableBody tr');
+    const rows = document.querySelectorAll('#exportTableBody tr');
 
-        rows.forEach(row => {
-            let display = true;
+    rows.forEach(row => {
+        let display = true;
 
-            // Filter by status
-            if (status && row.getAttribute('data-status') !== status) {
-                display = false;
-            }
+        // Filter by status
+        if (status && row.getAttribute('data-status') !== status) {
+            display = false;
+        }
 
-            // Filter by customer
-            if (customer && row.getAttribute('data-customer') !== customer) {
-                display = false;
-            }
+        // Filter by note
+        if (noteFilter && !row.querySelector('.export-creator').textContent.includes(noteFilter)) {
+            display = false;
+        }
 
-            // Filter by creator
-            if (creator && !row.querySelector('.export-creator').textContent.includes(creator)) {
-                display = false;
-            }
+        // Filter by date range
+        if (startDate || endDate) {
+            const rowDate = new Date(row.getAttribute('data-date'));
 
-            // Filter by date range
-            if (startDate || endDate) {
-                const rowDate = new Date(row.getAttribute('data-date'));
-
-                if (startDate) {
-                    const startDateObj = new Date(startDate);
-                    if (rowDate < startDateObj) {
-                        display = false;
-                    }
-                }
-
-                if (endDate) {
-                    const endDateObj = new Date(endDate);
-                    // Đặt thời gian đến cuối ngày (23:59:59)
-                    endDateObj.setHours(23, 59, 59, 999);
-                    if (rowDate > endDateObj) {
-                        display = false;
-                    }
+            if (startDate) {
+                const startDateObj = new Date(startDate);
+                if (rowDate < startDateObj) {
+                    display = false;
                 }
             }
 
-            row.style.display = display ? '' : 'none';
-        });
-    });
+            if (endDate) {
+                const endDateObj = new Date(endDate);
+                // Đặt thời gian đến cuối ngày (23:59:59)
+                endDateObj.setHours(23, 59, 59, 999);
+                if (rowDate > endDateObj) {
+                    display = false;
+                }
+            }
+        }
 
-    resetFilterBtn.addEventListener('click', () => {
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('warehouseFilter').value = '';
-        document.getElementById('customerFilter').value = '';
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
-        document.getElementById('creatorFilter').value = '';
-
-        // Show all rows
-        const rows = document.querySelectorAll('#exportTableBody tr');
-        rows.forEach(row => {
-            row.style.display = '';
-        });
+        row.style.display = display ? '' : 'none';
     });
+});
+
+resetFilterBtn.addEventListener('click', () => {
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    document.getElementById('creatorFilter').value = '';
+
+    // Show all rows
+    const rows = document.querySelectorAll('#exportTableBody tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+});
 
     // Add Export Button
     const addExportBtns = document.querySelectorAll('#addExportBtn');
@@ -911,14 +876,6 @@
         btn.addEventListener('click', () => {
             // Redirect to create export page
             window.location.href = '/create_export/';
-        });
-    });
-
-    const addExportBtns2 = document.querySelectorAll('#addExportBtnkh');
-    addExportBtns2.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Redirect to create customer page
-            window.location.href = '/create_export_kh/';
         });
     });
 
@@ -937,10 +894,10 @@
     document.getElementById('closeViewBtn').addEventListener('click', closeViewModal);
 
     document.getElementById('printExportBtn').addEventListener('click', () => {
-        const exportId = document.getElementById('viewExportCode').textContent;
-        alert(`Đang in phiếu xuất ${exportId}...`);
-        // In a real application, you would trigger a print function here
-    });
+    const exportId = document.getElementById('viewExportCode').textContent;
+    alert(`Đang in phiếu xuất ${exportId}...`);
+    // In a real application, you would trigger a print function here
+});
 
     // Edit Export
     function editExport(exportId) {

@@ -104,3 +104,4 @@ class User(models.Model):
 class Log(models.Model):
     notes = models.TextField()
     date = models.DateTimeField()
+    user=models.TextField(blank=True)

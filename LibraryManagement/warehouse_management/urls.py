@@ -45,6 +45,8 @@ urlpatterns = [
                   path('updatecustomer/', updatecustomer),
                   path('create_import_ncc/', add_ncc),
 
+                   path('thongbao/',thongbao) ,
+
                   path('quanlyxuathang/', quanlyxuathang),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

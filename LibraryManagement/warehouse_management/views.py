@@ -49,44 +49,71 @@ def editProduct(request, product_id):
     return render(request, "LibraryManagement/editProduct.html", {"product": product, "category": category})
 
 
-@require_http_methods(["POST"])
+@require_http_methods(["POST","GET"])
 @csrf_exempt
 def addPhieuNhap(request):
-    data = json.loads(request.body)
+    if request.method == "GET":
+        ncc=NhaCungCap.objects.all()
+        kho=Kho.objects.all()
+        category = Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category")
+        return render(request, "LibraryManagement/addPhieuNhap.html",{"ncc": ncc, "kho": kho, "category": category})
+
+    ncc=request.POST.get("supplier")
+    date = datetime.strptime(request.POST.get("date"), '%Y-%m-%d').date()
+    warehouse = Kho.objects.get(code=request.POST.get("warehouse"))
+    notes=request.POST.get("notes")
+    productdata=json.loads(request.POST.get("productData"))
+    totalprice=request.POST.get("totalAmount")
     try:
         with transaction.atomic():
-            nccRequest = data.get("nameNCC")
-            ncc = NhaCungCap.objects.get(nameNCC=nccRequest)
-            phieuNhapRequest = data.get("phieuNhap")
+            # nccRequest = data.get("nameNCC")
+            nhacungcap = NhaCungCap.objects.get(code=ncc)
+            # phieuNhapRequest = data.get("phieuNhap")
             phieuNhap = PhieuNhap.objects.create(
-                date=phieuNhapRequest.get("date"),
-                totalPrice=phieuNhapRequest.get("totalPrice"),
-                notes=phieuNhapRequest.get("notes"),
-                codeNCC=ncc
+                # date=phieuNhapRequest.get("date"),
+                # totalPrice=phieuNhapRequest.get("totalPrice"),
+                # notes=phieuNhapRequest.get("notes"),
+                # codeNCC=ncc
+                date=date,
+                totalPrice=int(totalprice),
+                notes=notes,
+                codeKho=warehouse,
+                codeNCC=nhacungcap,
+
             )
-            chiTietPhieuNhapRequest = data.get("chiTietPhieuNhap")
-            for item in chiTietPhieuNhapRequest:
-                if (Product.objects.filter(code=item["code"]).exists()):
-                    product = Product.objects.get(code=item["code"])
-                    product.quantity += item["quantity"]
-                    product.save()
+            user = User.objects.filter(code=request.session.get('user_id')).first()
+            if user is not None:
+                log=Log.objects.create(
+                    date=datetime.now(),
+                    notes='tạo phiếu nhập '+str(phieuNhap.code)
+                )
+                if user.role.name == 'Admin':
+                    log.user='Admin'
+                    phieuNhap.status='completed'
+
                 else:
-                    product = Product.objects.create(
-                        code=item.get("code"),
-                        nameProduct=item.get("nameProduct"),
-                        category=item.get("category"),
-                        quantity=item.get("quantity"),
-                        importPrice=item.get("importPrice"),
-                    )
+                    log.user= request.session.get('user_id')
+                log.save()
+                phieuNhap.save()
+            for item in productdata:
+                product = Product.objects.create(
+                    nameProduct=item["name"],
+                    category=item["type"],
+                    quantity=item["quantity"],
+                    sellingPrice=item["price"],
+                    importPrice=item["price"],
+                    codeKho=warehouse,
+                    notes=item["notes"]
+                )
                 ChiTietPhieuNhap.objects.create(
                     codeProduct=product,
                     codePhieuNhap=phieuNhap,
-                    quantity=item.get("quantity"),
-                    importPrice=item.get("importPrice"),
+                    quantity=item["quantity"],
+                    importPrice=int(item["price"])
                 )
-            return ApiResponse(message="thêm phiếu nhập thành công").to_json()
+            return redirect('/quanlynhaphang')
     except Exception as e:
-        return ApiResponse(message="thêm phiếu nhập Không thành công", status="false").to_json()
+        return JsonResponse({'e': str(e)})
 
 
 @csrf_exempt
@@ -252,7 +279,9 @@ def home_manager(request):
     for i in range(1, 13):
         pxt.append(PhieuXuat.objects.filter(date__month=i).count())
     phieuxuat = PhieuXuat.objects.filter(status="pending")
+
     log = Log.objects.order_by('-date')[:5]
+
     return render(request, 'LibraryManagement/home_manager.html',
                   {"pxt": pxt, "phieuxuat": phieuxuat, "soluongpx": phieuxuat.count(), "products": products.count(),
                    "log": log, "doanhthu": doanhthu, "loinhuan": loinhuan, "sanphamsaphet": low_stock_products})
@@ -317,25 +346,38 @@ def export_products_excel(request):
 @require_http_methods(["GET", "POST"])
 def login(request):
     if request.method == "POST":
-        if "user_id" in request.session:
-            user = User.objects.get(code=request.session["user_id"])
-            if user.role.name == "Admin":
-                return redirect('home_manager/')
-            elif user.role.name == "User":
-                return render(request, "LibraryManagement/index.html")
         email = request.POST.get("email")
         password = request.POST.get("password")
-        user = User.objects.filter(email=email).first()
-        if user is None or user.password != password:
-            return render(request, "LibraryManagement/login.html",
-                          {"message": "tài khoản hoặc mật khẩu không chính xác"})
-        else:
+        user=User.objects.get(email=email)
+        if user.password == password:
+            request.session["user_id"] = user.code
             if user.role.name == "Admin":
-                request.session["user_id"] = user.code
-                return redirect('home_manager/')
+                return redirect("/home_manager")
             else:
-                request.session["user_id"] = user.code
-                return render(request, "LibraryManagement/index.html")
+                return render(request, "LibraryManagement/test.html")
+
+        else:
+            return render(request, "LibraryManagement/login.html",
+                              {"message": "tài khoản hoặc mật khẩu không chính xác"})
+        # if "user_id" in request.session:
+        #     user = User.objects.get(code=request.session["user_id"])
+        #     if user.role.name == "Admin":
+        #         return redirect('home_manager/')
+        #     elif user.role.name == "User":
+        #         return render(request, "LibraryManagement/index.html")
+        # email = request.POST.get("email")
+        # password = request.POST.get("password")
+        # user = User.objects.filter(email=email).first()
+        # if user is None or user.password != password:
+        #     return render(request, "LibraryManagement/login.html",
+        #                   {"message": "tài khoản hoặc mật khẩu không chính xác"})
+        # else:
+        #     if user.role.name == "Admin":
+        #         request.session["user_id"] = user.code
+        #         return redirect('home_manager/')
+        #     else:
+        #         request.session["user_id"] = user.code
+        #         return render(request, "LibraryManagement/index.html")
     elif request.method == "GET":
         return render(request, "LibraryManagement/login.html", )
 
@@ -884,3 +926,27 @@ def quanlyxuathang(request):
     kho=Kho.objects.all()
     phieuxuat=PhieuXuat.objects.all()
     return render(request, 'LibraryManagement/quanlyxuathang.html',{'trangthai':trangthai,'kh':kh,'kho':kho,'phieuxuat':phieuxuat})
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+def thongbao(request):
+    if request.method == "GET":
+        users = User.objects.exclude(role__name='Admin')
+        return render(request,'LibraryManagement/thongbao.html',{'users':users})
+    elif request.method =="POST":
+        content=request.POST.get('content')
+        recipientType=request.POST.get('recipientType')
+        user=request.POST.get('user_code')
+        if recipientType == 'specific':
+            Log.objects.create(
+                date=datetime.now(),
+                notes=content,
+                user=user
+            )
+        if recipientType == 'all':
+            Log.objects.create(
+                date=datetime.now(),
+                notes=content,
+                user=recipientType
+            )
+        return render(request,'LibraryManagement/thongbao.html')

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu nhập sản phẩm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .header h1 i {
+            margin-right: 10px;
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-control.error {
+            border-color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        /* Product List */
+        .product-list {
+            margin-top: 20px;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .product-table th {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .product-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .product-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .edit-btn {
+            background-color: #f1f1f1;
+            color: #f39c12;
+        }
+
+        .edit-btn:hover {
+            background-color: #e1e1e1;
+        }
+
+        .delete-btn {
+            background-color: #f1f1f1;
+            color: #e74c3c;
+        }
+
+        .delete-btn:hover {
+            background-color: #e1e1e1;
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .total-section span {
+            margin-left: 10px;
+            color: #2ecc71;
+        }
+
+        .total-section .total-amount {
+            margin-left: 30px;
+        }
+
+        /* Product Form */
+        .product-form {
+            background-color: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .product-form-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .product-form-title i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+
+            .form-group {
+                width: 100%;
+            }
+
+            .product-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-boxes"></i> Phiếu nhập sản phẩm</h1>
+    </div>
+
+    <div class="content">
+        <h1 class="page-title">
+            <i class="fas fa-file-import"></i>
+            Tạo phiếu nhập sản phẩm
+        </h1>
+
+        <div class="form-container">
+            <h2 class="form-title">Thông tin phiếu nhập</h2>
+
+            <form id="importForm" action="/addphieunhap/" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="supplierSelect" class="required">Nhà cung cấp</label>
+                        <select id="supplierSelect" name="supplier" class="form-control" required>
+                            <option value="">Chọn nhà cung cấp</option>
+{#                            <option value="NCC001">Công ty TNHH ABC</option>#}
+{#                            <option value="NCC002">Công ty CP XYZ</option>#}
+{#                            <option value="NCC003">Công ty TNHH DEF</option>#}
+{#                            <option value="NCC004">Công ty CP GHI</option>#}
+                            {% for item in ncc %}
+                                <option value="{{ item.code }}">{{ item.nameNCC }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="error-message" id="supplierSelectError">Vui lòng chọn nhà cung cấp</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="importDate" class="required">Ngày nhập</label>
+                        <input type="date" id="importDate" name="date" class="form-control" required>
+                        <div class="error-message" id="importDateError">Vui lòng chọn ngày nhập</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="warehouseSelect" class="required">Kho nhập</label>
+                        <select id="warehouseSelect" name="warehouse" class="form-control" required>
+                            <option value="">Chọn kho nhập</option>
+{#                            <option value="KHO001">Kho chính</option>#}
+{#                            <option value="KHO002">Kho phụ 1</option>#}
+{#                            <option value="KHO003">Kho phụ 2</option>#}
+                            {% for item in kho %}
+                                <option value="{{ item.code }}">{{ item.description }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="error-message" id="warehouseSelectError">Vui lòng chọn kho nhập</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="importNotes">Ghi chú phiếu nhập</label>
+                        <textarea id="importNotes" name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <!-- Product List -->
+                <div class="product-list">
+                    <h3 class="form-title">Danh sách sản phẩm</h3>
+
+                    <div class="product-form" id="productForm">
+                        <h4 class="product-form-title">
+                            <i class="fas fa-plus-circle"></i>
+                            Thêm sản phẩm
+                        </h4>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productName" class="">Tên sản phẩm</label>
+                                <input type="text" id="productName" class="form-control" >
+                                <div class="error-message" id="productNameError">Vui lòng nhập tên sản phẩm</div>
+                            </div>
+                            <div class="form-group">
+{#                                <label for="productType" class="">Loại sản phẩm</label>#}
+{#                                <select id="productType" class="form-control" >#}
+{#                                    <option value="">Chọn loại sản phẩm</option>#}
+{#                                    <option value="laptop">Laptop</option>#}
+{#                                    <option value="smartphone">Điện thoại</option>#}
+{#                                    <option value="tablet">Máy tính bảng</option>#}
+{#                                    <option value="accessory">Phụ kiện</option>#}
+{#                                    <option value="component">Linh kiện</option>#}
+{#                                    {% for item in category %}#}
+{#                                        <option value="{{ item.category }}">{{ item.category }}</option>#}
+{#                                    {% endfor %}#}
+{#                                </select>#}
+                                <label for="productType" class="">Loại sản phẩm</label>
+                                <input list="productType1" id="productType" name="productType" class="form-control"
+                                       placeholder="Chọn hoặc nhập loại sản phẩm">
+                                <datalist id="productType1">
+                                    {% for item in category %}
+                                        <option value="{{ item.category }}">
+                                    {% endfor %}
+                                </datalist>
+                                <div class="error-message" id="productTypeError">Vui lòng chọn loại sản phẩm</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productPrice" class="">Giá tiền</label>
+                                <input type="number" id="productPrice" class="form-control" min="0" step="1000" >
+                                <div class="error-message" id="productPriceError">Vui lòng nhập giá tiền hợp lệ</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="productQuantity" class="">Số lượng</label>
+                                <input type="number" id="productQuantity" class="form-control" min="1" value="1" >
+                                <div class="error-message" id="productQuantityError">Vui lòng nhập số lượng hợp lệ</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productNotes">Ghi chú sản phẩm</label>
+                                <textarea id="productNotes" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-actions" style="border-top: none; padding-top: 0;">
+                            <button type="button" class="btn btn-secondary" id="resetProductBtn">
+                                <i class="fas fa-undo"></i>
+                                Đặt lại
+                            </button>
+                            <button type="button" class="btn btn-primary" id="addProductBtn">
+                                <i class="fas fa-plus"></i>
+                                Thêm sản phẩm
+                            </button>
+                        </div>
+                    </div>
+
+                    <table class="product-table" id="productTable">
+                        <thead>
+                            <tr>
+                                <th>Tên sản phẩm</th>
+                                <th>Loại</th>
+                                <th>Giá tiền</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                                <th>Ghi chú</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody">
+                            <!-- Products will be added here dynamically -->
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 20px;">Chưa có sản phẩm nào được thêm vào phiếu nhập</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="total-section">
+                        <div>Tổng số sản phẩm: <span id="totalProducts">0</span></div>
+                        <div class="total-amount">Tổng tiền: <span id="totalAmount">0 đ</span></div>
+                        <input type="hidden" name="productData" id="productDataInput">
+                        <input type="hidden" name="totalAmount" id="totalAmountInput" value="0">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">
+                        <i class="fas fa-times"></i>
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-success" id="saveBtn">
+                        <i class="fas fa-save"></i>
+                        Lưu phiếu nhập
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Set current date as default
+        document.getElementById('importDate').valueAsDate = new Date();
+
+        // Product management
+        const products = [];
+        let editingIndex = -1;
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+        }
+
+        // Calculate total
+        function calculateTotal() {
+            const totalProducts = products.length;
+            document.getElementById('totalProducts').textContent = totalProducts;
+
+            const totalAmount = products.reduce((sum, product) => {
+                return sum + (product.price * product.quantity);
+            }, 0);
+
+            document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
+            document.getElementById('totalAmountInput').value = totalAmount;
+        }
+
+        // Get product type name
+        function getProductTypeName(type) {
+            const types = {
+                'laptop': 'Laptop',
+                'smartphone': 'Điện thoại',
+                'tablet': 'Máy tính bảng',
+                'accessory': 'Phụ kiện',
+                'component': 'Linh kiện'
+            };
+
+            return types[type] || type;
+        }
+
+        // Render product table
+        function renderProductTable() {
+            const tableBody = document.getElementById('productTableBody');
+            tableBody.innerHTML = '';
+
+            if (products.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="7" style="text-align: center; padding: 20px;">Chưa có sản phẩm nào được thêm vào phiếu nhập</td>`;
+                tableBody.appendChild(emptyRow);
+                return;
+            }
+
+            products.forEach((product, index) => {
+                const row = document.createElement('tr');
+                const subtotal = product.price * product.quantity;
+
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${getProductTypeName(product.type)}</td>
+                    <td>${formatCurrency(product.price)}</td>
+                    <td>${product.quantity}</td>
+                    <td>${formatCurrency(subtotal)}</td>
+                    <td>${product.notes || '-'}</td>
+                    <td>
+                        <div class="product-actions">
+                            <div class="action-btn edit-btn" onclick="editProduct(${index})">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="action-btn delete-btn" onclick="deleteProduct(${index})">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+
+            // Update product data input for form submission
+            document.getElementById('productDataInput').value = JSON.stringify(products);
+
+            // Update totals
+            calculateTotal();
+        }
+
+        // Validate product form
+        function validateProductForm() {
+            let isValid = true;
+
+            // Validate product name
+            const productName = document.getElementById('productName');
+            if (!productName.value.trim()) {
+                document.getElementById('productNameError').style.display = 'block';
+                productName.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('productNameError').style.display = 'none';
+                productName.classList.remove('error');
+            }
+
+            // Validate product type
+            const productType = document.getElementById('productType');
+            if (!productType.value) {
+                document.getElementById('productTypeError').style.display = 'block';
+                productType.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('productTypeError').style.display = 'none';
+                productType.classList.remove('error');
+            }
+
+            // Validate price
+            const productPrice = document.getElementById('productPrice');
+            if (!productPrice.value || parseFloat(productPrice.value) < 0) {
+                document.getElementById('productPriceError').style.display = 'block';
+                productPrice.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('productPriceError').style.display = 'none';
+                productPrice.classList.remove('error');
+            }
+
+            // Validate quantity
+            const productQuantity = document.getElementById('productQuantity');
+            if (!productQuantity.value || parseInt(productQuantity.value) < 1) {
+                document.getElementById('productQuantityError').style.display = 'block';
+                productQuantity.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('productQuantityError').style.display = 'none';
+                productQuantity.classList.remove('error');
+            }
+
+            return isValid;
+        }
+
+        // Add product
+        function addProduct() {
+            if (!validateProductForm()) {
+                return;
+            }
+
+            const name = document.getElementById('productName').value.trim();
+            const type = document.getElementById('productType').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const quantity = parseInt(document.getElementById('productQuantity').value);
+            const notes = document.getElementById('productNotes').value.trim();
+
+            const product = {
+                name,
+                type,
+                price,
+                quantity,
+                notes
+            };
+
+            if (editingIndex >= 0) {
+                // Update existing product
+                products[editingIndex] = product;
+                editingIndex = -1;
+                document.getElementById('addProductBtn').innerHTML = '<i class="fas fa-plus"></i> Thêm sản phẩm';
+            } else {
+                // Add new product
+                products.push(product);
+            }
+
+            // Reset form
+            resetProductForm();
+
+            // Update UI
+            renderProductTable();
+        }
+
+        // Edit product
+        function editProduct(index) {
+            const product = products[index];
+
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productType').value = product.type;
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productQuantity').value = product.quantity;
+            document.getElementById('productNotes').value = product.notes || '';
+
+            editingIndex = index;
+            document.getElementById('addProductBtn').innerHTML = '<i class="fas fa-save"></i> Cập nhật sản phẩm';
+
+            // Scroll to product form
+            document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Delete product
+        function deleteProduct(index) {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+                products.splice(index, 1);
+
+                if (editingIndex === index) {
+                    resetProductForm();
+                    editingIndex = -1;
+                    document.getElementById('addProductBtn').innerHTML = '<i class="fas fa-plus"></i> Thêm sản phẩm';
+                }
+
+                renderProductTable();
+            }
+        }
+
+        // Reset product form
+        function resetProductForm() {
+            document.getElementById('productName').value = '';
+            document.getElementById('productType').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productQuantity').value = '1';
+            document.getElementById('productNotes').value = '';
+
+            // Hide error messages
+            document.getElementById('productNameError').style.display = 'none';
+            document.getElementById('productTypeError').style.display = 'none';
+            document.getElementById('productPriceError').style.display = 'none';
+            document.getElementById('productQuantityError').style.display = 'none';
+
+            // Remove error class
+            document.getElementById('productName').classList.remove('error');
+            document.getElementById('productType').classList.remove('error');
+            document.getElementById('productPrice').classList.remove('error');
+            document.getElementById('productQuantity').classList.remove('error');
+
+            editingIndex = -1;
+            document.getElementById('addProductBtn').innerHTML = '<i class="fas fa-plus"></i> Thêm sản phẩm';
+        }
+
+        // Event listeners
+        document.getElementById('addProductBtn').addEventListener('click', addProduct);
+        document.getElementById('resetProductBtn').addEventListener('click', resetProductForm);
+
+        // Cancel button
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn hủy tạo phiếu nhập? Mọi thông tin sẽ không được lưu.')) {
+                window.location.href = '/';
+            }
+        });
+
+        // Form validation
+        document.getElementById('importForm').addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // Validate supplier
+            const supplierSelect = document.getElementById('supplierSelect');
+            if (!supplierSelect.value) {
+                document.getElementById('supplierSelectError').style.display = 'block';
+                supplierSelect.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('supplierSelectError').style.display = 'none';
+                supplierSelect.classList.remove('error');
+            }
+
+            // Validate import date
+            const importDate = document.getElementById('importDate');
+            if (!importDate.value) {
+                document.getElementById('importDateError').style.display = 'block';
+                importDate.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('importDateError').style.display = 'none';
+                importDate.classList.remove('error');
+            }
+
+            // Validate warehouse
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            if (!warehouseSelect.value) {
+                document.getElementById('warehouseSelectError').style.display = 'block';
+                warehouseSelect.classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('warehouseSelectError').style.display = 'none';
+                warehouseSelect.classList.remove('error');
+            }
+
+            // Validate products
+            if (products.length === 0) {
+                alert('Vui lòng thêm ít nhất một sản phẩm vào phiếu nhập');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            } else if (!confirm('Bạn có chắc chắn muốn lưu phiếu nhập này?')) {
+                e.preventDefault();
+            }
+        });
+
+        // Make functions globally available
+        window.editProduct = editProduct;
+        window.deleteProduct = deleteProduct;
+
+        // Initialize
+        renderProductTable();
+    </script>
+</body>
+</html>
