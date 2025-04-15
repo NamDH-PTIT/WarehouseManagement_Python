@@ -1102,17 +1102,22 @@ def update_phieuxuat(request):
     phieu_xuat.status=data['status']
     phieu_xuat.notes=data['notes']
     phieu_xuat.totalPrice=int(data['totalAmount'])
+    phieu_xuat.save()
     products=data['products']
     chitietphieuxuat=ChiTietPhieuXuat.objects.filter(phieuXuat=phieu_xuat)
 
 
     for item in products:
+
         for ctpx in chitietphieuxuat:
             code=item['code']
             quantity=item['quantity']
-            product=Product.objects.filter(code=code).first()
-            product.quantity=product+()
-
+            if code== ctpx.product.code:
+                productitem=Product.objects.get(code=item['code'])
+                productitem.quantity=productitem.quantity+(ctpx.quantity-int(item['quantity']))
+                productitem.save()
+                ctpx.quantity=int(item['quantity'])
+                ctpx.save()
     return JsonResponse({'success': True})
 
 def chitietphieuxuat(request,id):

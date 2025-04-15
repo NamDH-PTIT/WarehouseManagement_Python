@@ -360,9 +360,7 @@
         <div class="detail-title">Danh sách sản phẩm</div>
       </div>
 
-      <button class="btn btn-primary add-product-btn" id="addProductBtn">
-        <i class="fas fa-plus"></i> Thêm sản phẩm
-      </button>
+
 
       <table class="product-table">
         <thead>
@@ -384,7 +382,7 @@
             <td>{{ item.product.category}}</td>
             <td style="text-align:center;"><input type="number" class="product-quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.quantity }}"></td>
             <td style="text-align:right;"><input type="number" class="product-price" value="{{ item.sellingPrice }}" readonly></td>
-            <td class="product-total" style="text-align:right;">{{ phieuxuat.totalPrice }}đ</td>
+            <td class="product-total" style="text-align:right;">đ</td>
             <td style="text-align:center;">
               <button class="action-btn delete-btn" onclick="deleteProduct(this)">
                 <i class="fas fa-trash"></i>
@@ -396,7 +394,7 @@
         <tfoot>
           <tr class="total-row">
             <td colspan="5" style="text-align: right;">Tổng cộng:</td>
-            <td id="grandTotal" class="product-total" style="text-align:right;">8,800,000 đ</td>
+            <td id="grandTotal" class="product-total" style="text-align:right;">{{ phieuxuat.totalPrice }} đ</td>
             <td></td>
           </tr>
         </tfoot>
