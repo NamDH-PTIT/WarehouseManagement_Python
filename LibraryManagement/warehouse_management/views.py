@@ -187,67 +187,67 @@ def getNCC(request, customer_id=None):
             return JsonResponse({"success": False, "message": str(e)}, status=400)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@transaction.atomic
-def addPhieuXuat(request):
-    data = json.loads(request.body)
-    customerRequest = data.get("codeCustomer")
-
-    try:
-
-        customer = Customer.objects.get(code=customerRequest)
-
-        phieuXuatRequest = data.get("phieuXuat")
-        listChiTietPhieuXuat = data.get("chiTietPhieuXuat")
-
-        # **Bước 1: Kiểm tra toàn bộ danh sách trước khi tạo phiếu xuất**
-        for item in listChiTietPhieuXuat:
-            if not Product.objects.filter(code=item.get("codeProduct")).exists():
-                return JsonResponse({"message": f"Không có sản phẩm {item.get('codeProduct')}", "success": False},
-                                    status=400)
-
-            product = Product.objects.get(code=item.get("codeProduct"))
-            if product.quantity < item.get("quantity"):
-                return JsonResponse({
-                    "message": "Số lượng sản phẩm không đủ",
-                    "success": False,
-                    "model": model_to_dict(product)
-                }, status=400)
-
-        # **Bước 2: Tạo phiếu xuất vì không có lỗi nào**
-        with transaction.atomic():
-            phieuXuat = PhieuXuat.objects.create(
-                date=phieuXuatRequest.get("date"),
-                totalPrice=phieuXuatRequest.get("totalPrice"),
-                notes=phieuXuatRequest.get("notes"),
-                customer=customer
-            )
-
-            # **Bước 3: Lưu chi tiết phiếu xuất**
-            for item in listChiTietPhieuXuat:
-                product = Product.objects.get(code=item.get("codeProduct"))
-
-                ChiTietPhieuXuat.objects.create(
-                    quantity=item.get("quantity"),
-                    sellingPrice=item.get("sellingPrice"),
-                    product=product,
-                    phieuXuat=phieuXuat
-                )
-                # **Cập nhật số lượng sản phẩm**
-                product.quantity -= item.get("quantity")
-                product.save()
-                Log.objects.create(
-                    date=datetime.now(),
-                    notes="xử lý phiếu xuất" + phieuXuat.code
-                )
-
-        return JsonResponse({"message": "Thêm phiếu xuất thành công", "success": True})
-
-    except Customer.DoesNotExist:
-        return JsonResponse({"message": "Khách hàng không tồn tại", "success": False}, status=400)
-    except Exception as e:
-        return JsonResponse({"success": False, "message": str(e)}, status=400)
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# @transaction.atomic
+# def addPhieuXuat(request):
+#     data = json.loads(request.body)
+#     customerRequest = data.get("codeCustomer")
+#
+#     try:
+#
+#         customer = Customer.objects.get(code=customerRequest)
+#
+#         phieuXuatRequest = data.get("phieuXuat")
+#         listChiTietPhieuXuat = data.get("chiTietPhieuXuat")
+#
+#         # **Bước 1: Kiểm tra toàn bộ danh sách trước khi tạo phiếu xuất**
+#         for item in listChiTietPhieuXuat:
+#             if not Product.objects.filter(code=item.get("codeProduct")).exists():
+#                 return JsonResponse({"message": f"Không có sản phẩm {item.get('codeProduct')}", "success": False},
+#                                     status=400)
+#
+#             product = Product.objects.get(code=item.get("codeProduct"))
+#             if product.quantity < item.get("quantity"):
+#                 return JsonResponse({
+#                     "message": "Số lượng sản phẩm không đủ",
+#                     "success": False,
+#                     "model": model_to_dict(product)
+#                 }, status=400)
+#
+#         # **Bước 2: Tạo phiếu xuất vì không có lỗi nào**
+#         with transaction.atomic():
+#             phieuXuat = PhieuXuat.objects.create(
+#                 date=phieuXuatRequest.get("date"),
+#                 totalPrice=phieuXuatRequest.get("totalPrice"),
+#                 notes=phieuXuatRequest.get("notes"),
+#                 customer=customer
+#             )
+#
+#             # **Bước 3: Lưu chi tiết phiếu xuất**
+#             for item in listChiTietPhieuXuat:
+#                 product = Product.objects.get(code=item.get("codeProduct"))
+#
+#                 ChiTietPhieuXuat.objects.create(
+#                     quantity=item.get("quantity"),
+#                     sellingPrice=item.get("sellingPrice"),
+#                     product=product,
+#                     phieuXuat=phieuXuat
+#                 )
+#                 # **Cập nhật số lượng sản phẩm**
+#                 product.quantity -= item.get("quantity")
+#                 product.save()
+#                 Log.objects.create(
+#                     date=datetime.now(),
+#                     notes="xử lý phiếu xuất" + phieuXuat.code
+#                 )
+#
+#         return JsonResponse({"message": "Thêm phiếu xuất thành công", "success": True})
+#
+#     except Customer.DoesNotExist:
+#         return JsonResponse({"message": "Khách hàng không tồn tại", "success": False}, status=400)
+#     except Exception as e:
+#         return JsonResponse({"success": False, "message": str(e)}, status=400)
 
 
 @csrf_exempt
@@ -360,7 +360,7 @@ def login(request):
             elif user.role.name == "User":
                 return redirect("/home")
             else:
-                return render(request, "LibraryManagement/test.html")
+                return redirect('/home_vc/')
         else:
             return render(request, "LibraryManagement/login.html",
                           {"message": "tài khoản hoặc mật khẩu không chính xác"})
@@ -1031,12 +1031,7 @@ def user_login(request):
                    'productsaphet': productsaphet.count(), 'phieuxuatpending': phieuxuatpending, 'kho': kho,
                    'hoatdong1': hoatdong1, 'hoatdong2': hoatdong2, 'hoatdong3': hoatdong3,
                    'hoatdong4': hoatdong4})
-@csrf_exempt
-@require_http_methods(["POST", "GET"])
-def create_export(request):
-    # //chưa được
-    if request.method == "GET":
-        return render(request,'LibraryManagement/addphieuxuat.html')
+
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
@@ -1048,3 +1043,56 @@ def home_vc(request):
 def update_vc(request,id):
     print('àafsaf')
     return render(request,'LibraryManagement/nvvanchuyen.html')
+@transaction.atomic
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def addphieuxuat(request):
+    if(request.method == "GET"):
+        customer = Customer.objects.all()
+        products = Product.objects.all()
+        products = products.filter(quantity__gt=0)
+        return render(request, 'LibraryManagement/addphieuxuat.html', {'customer': customer, 'products': products})
+    date = datetime.strptime(request.POST.get("date"), '%Y-%m-%d').date()
+    customer = Customer.objects.filter(code=request.POST.get("customer")).first()
+    notes = request.POST.get("notes")
+    status = request.POST.get("status")
+    total = request.POST.get("totalPrice")
+    productData = json.loads(request.POST.get("productData"))
+    phieu_xuat = PhieuXuat.objects.create(
+        date=date,
+        totalPrice=total,
+        notes=notes,
+        status=status,
+        customer=customer,
+    )
+    for item in productData:
+        sanpham = Product.objects.filter(code=item['code']).first()
+        sanpham.quantity = sanpham.quantity - int(item['quantity'])
+        sanpham.save()
+        chitietphieuxuat = ChiTietPhieuXuat.objects.create(
+            quantity=int(item['quantity']),
+            sellingPrice=sanpham.sellingPrice,
+            phieuXuat=phieu_xuat,
+            product=sanpham,
+        )
+    soluongdon = PhieuXuat.objects.filter(customer=customer).count()
+    if soluongdon < 5:
+        customer.status = 'vip 3'
+    elif soluongdon < 10:
+        customer.status = 'vip 2'
+    elif soluongdon < 20:
+        customer.status = 'vip 1'
+    else:
+        customer.status = 'vip 0'
+    customer.save()
+
+    return redirect('/quanlyxuathang/')
+
+
+
+def chitietphieuxuat(request,id):
+    phieuxuat=PhieuXuat.objects.filter(code=id).first()
+    customer=Customer.objects.all()
+    products = Product.objects.all()
+    chitietphieuxuat=ChiTietPhieuXuat.objects.filter(phieuXuat=phieuxuat)
+    return render(request,'LibraryManagement/chitietphieuxuat.html',{'phieuxuat': phieuxuat,'customer':customer,'products':products,'chitietphieuxuat':chitietphieuxuat})

@@ -879,14 +879,14 @@ resetFilterBtn.addEventListener('click', () => {
     addExportBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             // Redirect to create export page
-            window.location.href = '/create_export/';
+            window.location.href = '/addphieuxuat/';
         });
     });
 
     // View Export functionality
     function viewExport(exportId) {
         // Redirect to view export page instead of showing modal
-        window.location.href = `/view_export/?id=${exportId}`;
+        window.location.href = `/chitietphieuxuat/id=${exportId}`;
     }
 
     function closeViewModal() {

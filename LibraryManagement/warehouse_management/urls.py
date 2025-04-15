@@ -15,7 +15,6 @@ urlpatterns = [
                   path('customer/<str:customer_code>/', getCustomer),
                   path('nhacungcap/', getNCC),
                   path('nhacungcap/<str:ncc_id>/', getNCC),
-                  path('addphieuxuat/', addPhieuXuat),
                   path('updateproduct/', updateProduct),
                   path('home_manager/', home_manager),
                   path('export-excel/', export_products_excel),
@@ -51,7 +50,9 @@ urlpatterns = [
                   path('baocao/', baocao),
                   path('logout/', logout),
                   path('home/', user_login),
-                  path('create_export/', create_export),
                   path('home_vc/', home_vc),
-                  path('update_vc/id=<str:id>', update_vc, ),
+
+                  path('update_vc/id=<str:id>', update_vc),
+                  path('addphieuxuat/', addphieuxuat),
+                  path('chitietphieuxuat/id=<str:id>', chitietphieuxuat),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
