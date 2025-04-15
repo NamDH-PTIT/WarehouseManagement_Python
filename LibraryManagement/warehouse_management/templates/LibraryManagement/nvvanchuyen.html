@@ -321,8 +321,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .status-loading.visible {
@@ -768,630 +772,487 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h1><img src="https://via.placeholder.com/32" alt="Logo"> Vận chuyển</h1>
-            <button class="sidebar-close" id="sidebarClose">
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h1><img src="https://via.placeholder.com/32" alt="Logo"> Vận chuyển</h1>
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="sidebar-menu">
+        <!-- Modified: Changed href to home_vc endpoint -->
+        <a href="/home_vc" class="menu-item active">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
+        </a>
+        <!-- Modified: Changed href to shipper_baocao endpoint -->
+        <a href="/shipper_baocao" class="menu-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Báo cáo</span>
+        </a>
+        <!-- Logout button at the bottom -->
+        <a href="#" class="menu-item logout-item" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="header">
+        <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="header-right">
+            <div class="user-info">
+                <span>{{ user.name }}</span>
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="dashboard-section">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Quản lý đơn hàng</h1>
+            <div class="dashboard-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm đơn hàng..." id="searchInput">
+                </div>
+                <button class="filter-btn">
+                    <i class="fas fa-filter"></i>
+                    <span>Lọc</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="orders-table-container">
+            <table class="orders-table">
+                <thead>
+                <tr>
+                    <th>Mã phiếu</th>
+                    <th>Ngày tạo</th>
+                    <th>Khách hàng</th>
+                    <th>Địa chỉ</th>
+                    <th>Tổng giá trị</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in phieuxuat %}
+                    <tr>
+                        <td class="order-id">{{ item.code }}</td>
+                        <td class="order-date">{{ item.date }}</td>
+                        <td class="order-customer">{{ item.customer.name }}</td>
+                        <td>{{ item.customer.address }}</td>
+                        <td class="order-value">{{ item.totalPrice }} ₫</td>
+                        <td class="order-status">
+                            <div class="status-select-container" data-order-id="{{ item.code }}">
+                                <select class="status-select" data-original-value="{{ item.status }}">
+                                    {#                                        <option value="pending">Chờ xử lý</option>#}
+                                    <option value="processing">Đang xử lý</option>
+                                    <option value="shipped">Đang giao</option>
+                                    {% if item.status == 'pending' %}
+                                        <option value="pending" selected>Chờ xử lý</option>
+                                    {% else %}
+                                        <option value="pending">Chờ xử lý</option>
+                                    {% endif %}
+                                    {% if item.status == 'completed' %}
+                                        <option value="delivered" selected>Hoàn thành</option>
+                                    {% else %}
+                                        <option value="delivered">Hoàn thành</option>
+                                    {% endif %}
+                                    {% if item.status == 'cancelled' %}
+                                        <option value="cancelled" selected>Đã Hủy</option>
+                                    {% else %}
+                                        <option value="cancelled">Đã Hủy</option>
+                                    {% endif %}
+                                    {#                                        <option value="cancelled">Đã hủy</option>#}
+                                </select>
+                                <button class="status-save-btn">Lưu</button>
+                                <div class="status-loading"></div>
+                            </div>
+                        </td>
+                        <td class="order-actions">
+                            <div class="action-btn view-btn" onclick="showOrderDetails('ĐH001')">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="action-btn print-btn" onclick="printOrder('ĐH001')">
+                                <i class="fas fa-print"></i>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <div class="pagination-item">
+                <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="pagination-item active">1</div>
+            <div class="pagination-item">2</div>
+            <div class="pagination-item">3</div>
+            <div class="pagination-item">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Order Details Modal -->
+<div class="modal" id="orderDetailsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Chi tiết đơn hàng <span id="orderIdDetail"></span></div>
+            <button class="modal-close" id="orderDetailsModalClose">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="sidebar-menu">
-            <a href="#" class="menu-item active" data-section="dashboard">
-                <i class="fas fa-th-large"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" class="menu-item" data-section="orders">
-                <i class="fas fa-shipping-fast"></i>
-                <span>Đơn hàng</span>
-            </a>
-            <a href="#" class="menu-item" data-section="delivered">
-                <i class="fas fa-check-circle"></i>
-                <span>Đã giao</span>
-            </a>
-            <a href="#" class="menu-item" data-section="reports">
-                <i class="fas fa-chart-bar"></i>
-                <span>Báo cáo</span>
-            </a>
-            <!-- Logout button at the bottom -->
-            <a href="#" class="menu-item logout-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Đăng xuất</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="header">
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="header-right">
-                <div class="user-info">
-                    <span>{{ user.name }}</span>
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+        <div class="modal-body">
+            <div class="order-info">
+                <div class="order-info-group">
+                    <div class="order-info-title">Thông tin đơn hàng</div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Mã đơn hàng:</div>
+                        <div class="order-info-value" id="orderIdValue">ĐH001</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Ngày tạo:</div>
+                        <div class="order-info-value" id="orderDateValue">15/04/2023</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Trạng thái:</div>
+                        <div class="order-info-value" id="orderStatusValue">Đang xử lý</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Phương thức thanh toán:</div>
+                        <div class="order-info-value" id="orderPaymentValue">Chuyển khoản</div>
+                    </div>
+                </div>
+                <div class="order-info-group">
+                    <div class="order-info-title">Thông tin khách hàng</div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Tên khách hàng:</div>
+                        <div class="order-info-value" id="customerNameValue">Công ty TNHH ABC</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Số điện thoại:</div>
+                        <div class="order-info-value" id="customerPhoneValue">0912345678</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Email:</div>
+                        <div class="order-info-value" id="customerEmailValue">contact@abc.com</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Địa chỉ:</div>
+                        <div class="order-info-value" id="customerAddressValue">123 Nguyễn Văn Linh, Q.7, TP.HCM</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Dashboard Section -->
-        <div id="dashboardSection" class="dashboard-section">
-            <div class="dashboard-header">
-                <h1 class="dashboard-title">Quản lý đơn hàng</h1>
-                <div class="dashboard-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Tìm kiếm đơn hàng..." id="searchInput">
-                    </div>
-                    <button class="filter-btn">
-                        <i class="fas fa-filter"></i>
-                        <span>Lọc</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="orders-table-container">
-                <table class="orders-table">
+            <div class="order-products">
+                <div class="order-products-title">Sản phẩm</div>
+                <table class="products-table">
                     <thead>
-                        <tr>
-                            <th>Mã phiếu</th>
-                            <th>Ngày tạo</th>
-                            <th>Khách hàng</th>
-                            <th>Địa chỉ</th>
-                            <th>Tổng giá trị</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Đơn giá</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                    </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td class="order-id">ĐH001</td>
-                            <td class="order-date">15/04/2023</td>
-                            <td class="order-customer">Công ty TNHH ABC</td>
-                            <td>123 Nguyễn Văn Linh, Q.7, TP.HCM</td>
-                            <td class="order-value">5,600,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH001">
-                                    <select class="status-select" data-original-value="processing">
-                                        <option value="pending">Chờ xử lý</option>
-                                        <option value="processing" selected>Đang xử lý</option>
-                                        <option value="shipped">Đang giao</option>
-                                        <option value="delivered">Đã giao</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH001')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH001')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="order-id">ĐH002</td>
-                            <td class="order-date">15/04/2023</td>
-                            <td class="order-customer">Nguyễn Văn B</td>
-                            <td>456 Lê Văn Lương, Q.7, TP.HCM</td>
-                            <td class="order-value">2,300,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH002">
-                                    <select class="status-select" data-original-value="shipped">
-                                        <option value="pending">Chờ xử lý</option>
-                                        <option value="processing">Đang xử lý</option>
-                                        <option value="shipped" selected>Đang giao</option>
-                                        <option value="delivered">Đã giao</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH002')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH002')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="order-id">ĐH003</td>
-                            <td class="order-date">14/04/2023</td>
-                            <td class="order-customer">Trần Thị C</td>
-                            <td>789 Nguyễn Thị Thập, Q.7, TP.HCM</td>
-                            <td class="order-value">1,800,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH003">
-                                    <select class="status-select" data-original-value="delivered">
-                                        <option value="pending">Chờ xử lý</option>
-                                        <option value="processing">Đang xử lý</option>
-                                        <option value="shipped">Đang giao</option>
-                                        <option value="delivered" selected>Đã giao</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH003')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH003')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="order-id">ĐH004</td>
-                            <td class="order-date">14/04/2023</td>
-                            <td class="order-customer">Lê Văn D</td>
-                            <td>101 Nguyễn Hữu Thọ, Q.7, TP.HCM</td>
-                            <td class="order-value">3,200,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH004">
-                                    <select class="status-select" data-original-value="pending">
-                                        <option value="pending" selected>Chờ xử lý</option>
-                                        <option value="processing">Đang xử lý</option>
-                                        <option value="shipped">Đang giao</option>
-                                        <option value="delivered">Đã giao</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH004')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH004')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="order-id">ĐH005</td>
-                            <td class="order-date">13/04/2023</td>
-                            <td class="order-customer">Phạm Thị E</td>
-                            <td>202 Huỳnh Tấn Phát, Q.7, TP.HCM</td>
-                            <td class="order-value">4,500,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH005">
-                                    <select class="status-select" data-original-value="cancelled">
-                                        <option value="pending">Chờ xử lý</option>
-                                        <option value="processing">Đang xử lý</option>
-                                        <option value="shipped">Đang giao</option>
-                                        <option value="delivered">Đã giao</option>
-                                        <option value="cancelled" selected>Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH005')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH005')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="order-id">ĐH006</td>
-                            <td class="order-date">13/04/2023</td>
-                            <td class="order-customer">Vũ Văn F</td>
-                            <td>303 Nguyễn Lương Bằng, Q.7, TP.HCM</td>
-                            <td class="order-value">2,800,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH006">
-                                    <select class="status-select" data-original-value="shipped">
-                                        <option value="pending">Chờ xử lý</option>
-                                        <option value="processing">Đang xử lý</option>
-                                        <option value="shipped" selected>Đang giao</option>
-                                        <option value="delivered">Đã giao</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH006')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH006')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="order-id">ĐH007</td>
-                            <td class="order-date">12/04/2023</td>
-                            <td class="order-customer">Hoàng Văn G</td>
-                            <td>404 Lê Văn Việt, Q.9, TP.HCM</td>
-                            <td class="order-value">1,900,000 ₫</td>
-                            <td class="order-status">
-                                <div class="status-select-container" data-order-id="ĐH007">
-                                    <select class="status-select" data-original-value="delivered">
-                                        <option value="pending">Chờ xử lý</option>
-                                        <option value="processing">Đang xử lý</option>
-                                        <option value="shipped">Đang giao</option>
-                                        <option value="delivered" selected>Đã giao</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
-                                    <button class="status-save-btn">Lưu</button>
-                                    <div class="status-loading"></div>
-                                </div>
-                            </td>
-                            <td class="order-actions">
-                                <div class="action-btn view-btn" onclick="showOrderDetails('ĐH007')">
-                                    <i class="fas fa-eye"></i>
-                                </div>
-                                <div class="action-btn print-btn" onclick="printOrder('ĐH007')">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="orderProductsBody">
+                    <tr>
+                        <td>Điện thoại iPhone 14</td>
+                        <td>25,000,000 ₫</td>
+                        <td>1</td>
+                        <td>25,000,000 ₫</td>
+                    </tr>
+                    <tr>
+                        <td>Ốp lưng iPhone 14</td>
+                        <td>500,000 ₫</td>
+                        <td>1</td>
+                        <td>500,000 ₫</td>
+                    </tr>
+                    <tr>
+                        <td>Cường lực iPhone 14</td>
+                        <td>300,000 ₫</td>
+                        <td>1</td>
+                        <td>300,000 ₫</td>
+                    </tr>
                     </tbody>
                 </table>
+
+                <div class="order-total">
+                    <div class="order-total-label">Tổng cộng:</div>
+                    <div class="order-total-value" id="orderTotalValue">5,600,000 ₫</div>
+                </div>
             </div>
 
-            <div class="pagination">
-                <div class="pagination-item">
-                    <i class="fas fa-chevron-left"></i>
+            <div class="order-notes">
+                <div class="order-notes-title">Ghi chú</div>
+                <div class="order-notes-content" id="orderNotesValue">
+                    Giao hàng trong giờ hành chính. Liên hệ trước khi giao.
                 </div>
-                <div class="pagination-item active">1</div>
-                <div class="pagination-item">2</div>
-                <div class="pagination-item">3</div>
-                <div class="pagination-item">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+            </div>
+
+            <div class="modal-status-container">
+                <label for="modalStatusSelect">Cập nhật trạng thái:</label>
+                <select id="modalStatusSelect" class="modal-status-select">
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="processing" selected>Đang xử lý</option>
+                    <option value="shipped">Đang giao</option>
+                    <option value="delivered">Đã giao</option>
+                    <option value="cancelled">Đã hủy</option>
+                </select>
             </div>
         </div>
-    </div>
-
-    <!-- Toast Notification Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Order Details Modal -->
-    <div class="modal" id="orderDetailsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Chi tiết đơn hàng <span id="orderIdDetail"></span></div>
-                <button class="modal-close" id="orderDetailsModalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="order-info">
-                    <div class="order-info-group">
-                        <div class="order-info-title">Thông tin đơn hàng</div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Mã đơn hàng:</div>
-                            <div class="order-info-value" id="orderIdValue">ĐH001</div>
-                        </div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Ngày tạo:</div>
-                            <div class="order-info-value" id="orderDateValue">15/04/2023</div>
-                        </div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Trạng thái:</div>
-                            <div class="order-info-value" id="orderStatusValue">Đang xử lý</div>
-                        </div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Phương thức thanh toán:</div>
-                            <div class="order-info-value" id="orderPaymentValue">Chuyển khoản</div>
-                        </div>
-                    </div>
-                    <div class="order-info-group">
-                        <div class="order-info-title">Thông tin khách hàng</div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Tên khách hàng:</div>
-                            <div class="order-info-value" id="customerNameValue">Công ty TNHH ABC</div>
-                        </div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Số điện thoại:</div>
-                            <div class="order-info-value" id="customerPhoneValue">0912345678</div>
-                        </div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Email:</div>
-                            <div class="order-info-value" id="customerEmailValue">contact@abc.com</div>
-                        </div>
-                        <div class="order-info-item">
-                            <div class="order-info-label">Địa chỉ:</div>
-                            <div class="order-info-value" id="customerAddressValue">123 Nguyễn Văn Linh, Q.7, TP.HCM</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="order-products">
-                    <div class="order-products-title">Sản phẩm</div>
-                    <table class="products-table">
-                        <thead>
-                            <tr>
-                                <th>Sản phẩm</th>
-                                <th>Đơn giá</th>
-                                <th>Số lượng</th>
-                                <th>Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orderProductsBody">
-                            <tr>
-                                <td>Điện thoại iPhone 14</td>
-                                <td>25,000,000 ₫</td>
-                                <td>1</td>
-                                <td>25,000,000 ₫</td>
-                            </tr>
-                            <tr>
-                                <td>Ốp lưng iPhone 14</td>
-                                <td>500,000 ₫</td>
-                                <td>1</td>
-                                <td>500,000 ₫</td>
-                            </tr>
-                            <tr>
-                                <td>Cường lực iPhone 14</td>
-                                <td>300,000 ₫</td>
-                                <td>1</td>
-                                <td>300,000 ₫</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="order-total">
-                        <div class="order-total-label">Tổng cộng:</div>
-                        <div class="order-total-value" id="orderTotalValue">5,600,000 ₫</div>
-                    </div>
-                </div>
-
-                <div class="order-notes">
-                    <div class="order-notes-title">Ghi chú</div>
-                    <div class="order-notes-content" id="orderNotesValue">
-                        Giao hàng trong giờ hành chính. Liên hệ trước khi giao.
-                    </div>
-                </div>
-
-                <div class="modal-status-container">
-                    <label for="modalStatusSelect">Cập nhật trạng thái:</label>
-                    <select id="modalStatusSelect" class="modal-status-select">
-                        <option value="pending">Chờ xử lý</option>
-                        <option value="processing" selected>Đang xử lý</option>
-                        <option value="shipped">Đang giao</option>
-                        <option value="delivered">Đã giao</option>
-                        <option value="cancelled">Đã hủy</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="orderDetailsCloseBtn">Đóng</button>
-                <button class="btn btn-primary" id="orderPrintBtn">In đơn hàng</button>
-                <button class="btn btn-success" id="orderUpdateStatusBtn">Cập nhật trạng thái</button>
-            </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="orderDetailsCloseBtn">Đóng</button>
+            <button class="btn btn-primary" id="orderPrintBtn">In đơn hàng</button>
+            <button class="btn btn-success" id="orderUpdateStatusBtn">Cập nhật trạng thái</button>
         </div>
     </div>
+</div>
 
-    <!-- Logout Confirmation Modal -->
-    <div class="modal logout-modal" id="logoutModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Xác nhận đăng xuất</div>
-                <button class="modal-close" id="logoutModalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="logoutCancelBtn">Hủy</button>
-                <button class="btn" id="logoutConfirmBtn" style="background-color: #e74c3c; color: white;">Đăng xuất</button>
-            </div>
+<!-- Logout Confirmation Modal -->
+<div class="modal logout-modal" id="logoutModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Xác nhận đăng xuất</div>
+            <button class="modal-close" id="logoutModalClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="logoutCancelBtn">Hủy</button>
+            <button class="btn" id="logoutConfirmBtn" style="background-color: #e74c3c; color: white;">Đăng xuất
+            </button>
         </div>
     </div>
+</div>
 
-    <script>
-        // Mobile menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebarClose = document.getElementById('sidebarClose');
-        const sidebar = document.getElementById('sidebar');
+<script>
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const sidebar = document.getElementById('sidebar');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.add('active');
-        });
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.add('active');
+    });
 
-        sidebarClose.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-        });
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', (e) => {
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+                sidebar.classList.remove('active');
+            }
+        }
+    });
+
+    // Menu item click handler
+    const menuItems = document.querySelectorAll('.menu-item');
+
+    menuItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            // Skip for links that should navigate away
+            if (item.getAttribute('href') !== '#') {
+                return;
+            }
+
+            e.preventDefault();
+
+            // Handle logout separately
+            if (item.id === 'logoutBtn') {
+                showLogoutModal();
+                return;
+            }
+
+            // Remove active class from all menu items
+            menuItems.forEach(i => i.classList.remove('active'));
+
+            // Add active class to clicked menu item
+            item.classList.add('active');
+
+            // Close sidebar on mobile after clicking
             if (window.innerWidth <= 768) {
-                if (!sidebar.contains(e.target) && e.target !== menuToggle) {
-                    sidebar.classList.remove('active');
-                }
+                sidebar.classList.remove('active');
             }
         });
+    });
 
-        // Menu item click handler
-        const menuItems = document.querySelectorAll('.menu-item');
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
 
-        menuItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                // Skip for links that should navigate away
-                if (item.getAttribute('href') !== '#') {
-                    return;
-                }
+    searchInput.addEventListener('keyup', () => {
+        const searchValue = searchInput.value.toLowerCase();
+        const rows = document.querySelectorAll('.orders-table tbody tr');
 
-                e.preventDefault();
+        rows.forEach(row => {
+            const orderId = row.querySelector('.order-id').textContent.toLowerCase();
+            const customer = row.querySelector('.order-customer').textContent.toLowerCase();
 
-                // Handle logout separately
-                if (item.id === 'logoutBtn') {
-                    showLogoutModal();
-                    return;
-                }
-
-                // Remove active class from all menu items
-                menuItems.forEach(i => i.classList.remove('active'));
-
-                // Add active class to clicked menu item
-                item.classList.add('active');
-
-                // Close sidebar on mobile after clicking
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                }
-            });
+            if (orderId.includes(searchValue) || customer.includes(searchValue)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
         });
+    });
 
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
+    // Status select change handler
+    document.querySelectorAll('.status-select').forEach(select => {
+        // Set initial color
+        updateSelectColor(select);
 
-        searchInput.addEventListener('keyup', () => {
-            const searchValue = searchInput.value.toLowerCase();
-            const rows = document.querySelectorAll('.orders-table tbody tr');
+        // Store original value
+        select.setAttribute('data-original-value', select.value);
 
-            rows.forEach(row => {
-                const orderId = row.querySelector('.order-id').textContent.toLowerCase();
-                const customer = row.querySelector('.order-customer').textContent.toLowerCase();
+        // Add change event listener
+        select.addEventListener('change', () => {
+            const container = select.closest('.status-select-container');
+            const saveBtn = container.querySelector('.status-save-btn');
+            const originalValue = select.getAttribute('data-original-value');
 
-                if (orderId.includes(searchValue) || customer.includes(searchValue)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
+            // Show save button if value changed
+            if (select.value !== originalValue) {
+                saveBtn.classList.add('visible');
+            } else {
+                saveBtn.classList.remove('visible');
+            }
 
-        // Status select change handler
-        document.querySelectorAll('.status-select').forEach(select => {
-            // Set initial color
+            // Update color
             updateSelectColor(select);
-
-            // Store original value
-            select.setAttribute('data-original-value', select.value);
-
-            // Add change event listener
-            select.addEventListener('change', () => {
-                const container = select.closest('.status-select-container');
-                const saveBtn = container.querySelector('.status-save-btn');
-                const originalValue = select.getAttribute('data-original-value');
-
-                // Show save button if value changed
-                if (select.value !== originalValue) {
-                    saveBtn.classList.add('visible');
-                } else {
-                    saveBtn.classList.remove('visible');
-                }
-
-                // Update color
-                updateSelectColor(select);
-            });
         });
+    });
 
-        // Save button click handler
-        document.querySelectorAll('.status-save-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const container = btn.closest('.status-select-container');
-                const select = container.querySelector('.status-select');
-                const loading = container.querySelector('.status-loading');
-                const orderId = container.getAttribute('data-order-id');
-                const newStatus = select.value;
+    // Save button click handler
+    document.querySelectorAll('.status-save-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const container = btn.closest('.status-select-container');
+            const select = container.querySelector('.status-select');
+            const loading = container.querySelector('.status-loading');
+            const orderId = container.getAttribute('data-order-id');
+            const newStatus = select.value;
 
-                // Hide save button and show loading
-                btn.classList.remove('visible');
-                loading.classList.add('visible');
+            // Hide save button and show loading
+            btn.classList.remove('visible');
+            loading.classList.add('visible');
 
-                // Create the update URL
-                const updateUrl = `/update_vc/id=${orderId}&status=${newStatus}`;
+            // Create the update URL
+            const updateUrl = `/update_vc/id=${orderId}&status=${newStatus}`;
 
-                // Show loading for a brief moment before redirecting
-                setTimeout(() => {
-                    // Redirect to the update URL
-                    window.location.href = updateUrl;
-                }, 500);
-            });
-        });
-
-        // Get status text from value
-        function getStatusText(status) {
-            switch(status) {
-                case 'pending': return 'Chờ xử lý';
-                case 'processing': return 'Đang xử lý';
-                case 'shipped': return 'Đang giao';
-                case 'delivered': return 'Đã giao';
-                case 'cancelled': return 'Đã hủy';
-                default: return status;
-            }
-        }
-
-        // Update select color based on value
-        function updateSelectColor(select) {
-            // Remove all status classes
-            select.classList.remove('status-pending', 'status-processing', 'status-shipped', 'status-delivered', 'status-cancelled');
-
-            // Add the appropriate class based on the selected value
-            select.classList.add(`status-${select.value}`);
-        }
-
-        // Show order details
-        function showOrderDetails(orderId) {
-            document.getElementById('orderIdDetail').textContent = orderId;
-            document.getElementById('orderIdValue').textContent = orderId;
-
-            // Find the status of this order
-            const orderRow = document.querySelector(`.status-select-container[data-order-id="${orderId}"]`);
-            if (orderRow) {
-                const statusSelect = orderRow.querySelector('.status-select');
-                const modalStatusSelect = document.getElementById('modalStatusSelect');
-
-                // Set the modal status select to match the order's current status
-                modalStatusSelect.value = statusSelect.value;
-            }
-
-            // In a real application, you would fetch the order details from the server
-            // For this example, we'll just show the modal with sample data
-
-            const modal = document.getElementById('orderDetailsModal');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        // Print order
-        function printOrder(orderId) {
-            showToast('info', 'In đơn hàng', `Đang chuẩn bị in đơn hàng ${orderId}`);
-
-            // In a real application, you would open a print dialog or generate a PDF
+            // Show loading for a brief moment before redirecting
             setTimeout(() => {
-                showToast('success', 'In đơn hàng', `Đơn hàng ${orderId} đã được gửi đến máy in`);
-            }, 1500);
+                // Redirect to the update URL
+                window.location.href = updateUrl;
+            }, 500);
+        });
+    });
+
+    // Get status text from value
+    function getStatusText(status) {
+        switch (status) {
+            case 'pending':
+                return 'Chờ xử lý';
+            case 'processing':
+                return 'Đang xử lý';
+            case 'shipped':
+                return 'Đang giao';
+            case 'delivered':
+                return 'Đã giao';
+            case 'cancelled':
+                return 'Đã hủy';
+            default:
+                return status;
+        }
+    }
+
+    // Update select color based on value
+    function updateSelectColor(select) {
+        // Remove all status classes
+        select.classList.remove('status-pending', 'status-processing', 'status-shipped', 'status-delivered', 'status-cancelled');
+
+        // Add the appropriate class based on the selected value
+        select.classList.add(`status-${select.value}`);
+    }
+
+    // Show order details
+    function showOrderDetails(orderId) {
+        document.getElementById('orderIdDetail').textContent = orderId;
+        document.getElementById('orderIdValue').textContent = orderId;
+
+        // Find the status of this order
+        const orderRow = document.querySelector(`.status-select-container[data-order-id="${orderId}"]`);
+        if (orderRow) {
+            const statusSelect = orderRow.querySelector('.status-select');
+            const modalStatusSelect = document.getElementById('modalStatusSelect');
+
+            // Set the modal status select to match the order's current status
+            modalStatusSelect.value = statusSelect.value;
         }
 
-        // Toast notification function
-        function showToast(type, title, message) {
-            const toastContainer = document.getElementById('toastContainer');
+        // In a real application, you would fetch the order details from the server
+        // For this example, we'll just show the modal with sample data
 
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
+        const modal = document.getElementById('orderDetailsModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 
-            let icon = '';
-            switch(type) {
-                case 'success': icon = 'check-circle'; break;
-                case 'warning': icon = 'exclamation-triangle'; break;
-                case 'error': icon = 'times-circle'; break;
-                default: icon = 'info-circle';
-            }
+    // Print order
+    function printOrder(orderId) {
+        showToast('info', 'In đơn hàng', `Đang chuẩn bị in đơn hàng ${orderId}`);
 
-            toast.innerHTML = `
+        // In a real application, you would open a print dialog or generate a PDF
+        setTimeout(() => {
+            showToast('success', 'In đơn hàng', `Đơn hàng ${orderId} đã được gửi đến máy in`);
+        }, 1500);
+    }
+
+    // Toast notification function
+    function showToast(type, title, message) {
+        const toastContainer = document.getElementById('toastContainer');
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        let icon = '';
+        switch (type) {
+            case 'success':
+                icon = 'check-circle';
+                break;
+            case 'warning':
+                icon = 'exclamation-triangle';
+                break;
+            case 'error':
+                icon = 'times-circle';
+                break;
+            default:
+                icon = 'info-circle';
+        }
+
+        toast.innerHTML = `
                 <div class="toast-icon">
                     <i class="fas fa-${icon}"></i>
                 </div>
@@ -1404,128 +1265,128 @@
                 </button>
             `;
 
-            toastContainer.appendChild(toast);
+        toastContainer.appendChild(toast);
 
-            // Show toast with animation
+        // Show toast with animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
             setTimeout(() => {
-                toast.classList.add('show');
-            }, 10);
+                toast.remove();
+            }, 300);
+        }, 5000);
 
-            // Auto hide after 5 seconds
+        // Close button
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => {
+            toast.classList.remove('show');
             setTimeout(() => {
-                toast.classList.remove('show');
+                toast.remove();
+            }, 300);
+        });
+    }
+
+    // Modal functions
+    function showLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Order details modal
+    const orderDetailsModalClose = document.getElementById('orderDetailsModalClose');
+    const orderDetailsCloseBtn = document.getElementById('orderDetailsCloseBtn');
+    const orderPrintBtn = document.getElementById('orderPrintBtn');
+    const orderUpdateStatusBtn = document.getElementById('orderUpdateStatusBtn');
+
+    if (orderDetailsModalClose) {
+        orderDetailsModalClose.addEventListener('click', () => closeModal('orderDetailsModal'));
+    }
+
+    if (orderDetailsCloseBtn) {
+        orderDetailsCloseBtn.addEventListener('click', () => closeModal('orderDetailsModal'));
+    }
+
+    if (orderPrintBtn) {
+        orderPrintBtn.addEventListener('click', () => {
+            const orderId = document.getElementById('orderIdValue').textContent;
+            printOrder(orderId);
+        });
+    }
+
+    if (orderUpdateStatusBtn) {
+        orderUpdateStatusBtn.addEventListener('click', () => {
+            const orderId = document.getElementById('orderIdValue').textContent;
+            const modalStatusSelect = document.getElementById('modalStatusSelect');
+            const newStatus = modalStatusSelect.value;
+
+            // Find the status select for this order in the table
+            const orderRow = document.querySelector(`.status-select-container[data-order-id="${orderId}"]`);
+            if (orderRow) {
+                const statusSelect = orderRow.querySelector('.status-select');
+                const loading = orderRow.querySelector('.status-loading');
+
+                // Update the select value
+                statusSelect.value = newStatus;
+
+                // Update the original value to prevent save button from showing
+                statusSelect.setAttribute('data-original-value', newStatus);
+
+                // Update color
+                updateSelectColor(statusSelect);
+
+                // Show loading indicator
+                loading.classList.add('visible');
+
+                // Create the update URL
+                const updateUrl = `update_vc/id=${orderId}`;
+
+                // Show loading for a brief moment before redirecting
                 setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 5000);
+                    // Redirect to the update URL
+                    window.location.href = updateUrl;
+                }, 500);
+            }
 
-            // Close button
-            const closeBtn = toast.querySelector('.toast-close');
-            closeBtn.addEventListener('click', () => {
-                toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            });
-        }
+            // Close modal
+            closeModal('orderDetailsModal');
+        });
+    }
 
-        // Modal functions
-        function showLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+    // Logout modal
+    const logoutModalClose = document.getElementById('logoutModalClose');
+    const logoutCancelBtn = document.getElementById('logoutCancelBtn');
+    const logoutConfirmBtn = document.getElementById('logoutConfirmBtn');
 
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
+    if (logoutModalClose) {
+        logoutModalClose.addEventListener('click', () => closeModal('logoutModal'));
+    }
 
-        // Order details modal
-        const orderDetailsModalClose = document.getElementById('orderDetailsModalClose');
-        const orderDetailsCloseBtn = document.getElementById('orderDetailsCloseBtn');
-        const orderPrintBtn = document.getElementById('orderPrintBtn');
-        const orderUpdateStatusBtn = document.getElementById('orderUpdateStatusBtn');
+    if (logoutCancelBtn) {
+        logoutCancelBtn.addEventListener('click', () => closeModal('logoutModal'));
+    }
 
-        if (orderDetailsModalClose) {
-            orderDetailsModalClose.addEventListener('click', () => closeModal('orderDetailsModal'));
-        }
+    if (logoutConfirmBtn) {
+        logoutConfirmBtn.addEventListener('click', () => {
+            closeModal('logoutModal');
+            showToast('info', 'Đăng xuất', 'Đang đăng xuất khỏi hệ thống...');
 
-        if (orderDetailsCloseBtn) {
-            orderDetailsCloseBtn.addEventListener('click', () => closeModal('orderDetailsModal'));
-        }
-
-        if (orderPrintBtn) {
-            orderPrintBtn.addEventListener('click', () => {
-                const orderId = document.getElementById('orderIdValue').textContent;
-                printOrder(orderId);
-            });
-        }
-
-        if (orderUpdateStatusBtn) {
-            orderUpdateStatusBtn.addEventListener('click', () => {
-                const orderId = document.getElementById('orderIdValue').textContent;
-                const modalStatusSelect = document.getElementById('modalStatusSelect');
-                const newStatus = modalStatusSelect.value;
-
-                // Find the status select for this order in the table
-                const orderRow = document.querySelector(`.status-select-container[data-order-id="${orderId}"]`);
-                if (orderRow) {
-                    const statusSelect = orderRow.querySelector('.status-select');
-                    const loading = orderRow.querySelector('.status-loading');
-
-                    // Update the select value
-                    statusSelect.value = newStatus;
-
-                    // Update the original value to prevent save button from showing
-                    statusSelect.setAttribute('data-original-value', newStatus);
-
-                    // Update color
-                    updateSelectColor(statusSelect);
-
-                    // Show loading indicator
-                    loading.classList.add('visible');
-
-                    // Create the update URL
-                    const updateUrl = `update_vc/id=${orderId}`;
-
-                    // Show loading for a brief moment before redirecting
-                    setTimeout(() => {
-                        // Redirect to the update URL
-                        window.location.href = updateUrl;
-                    }, 500);
-                }
-
-                // Close modal
-                closeModal('orderDetailsModal');
-            });
-        }
-
-        // Logout modal
-        const logoutModalClose = document.getElementById('logoutModalClose');
-        const logoutCancelBtn = document.getElementById('logoutCancelBtn');
-        const logoutConfirmBtn = document.getElementById('logoutConfirmBtn');
-
-        if (logoutModalClose) {
-            logoutModalClose.addEventListener('click', () => closeModal('logoutModal'));
-        }
-
-        if (logoutCancelBtn) {
-            logoutCancelBtn.addEventListener('click', () => closeModal('logoutModal'));
-        }
-
-        if (logoutConfirmBtn) {
-            logoutConfirmBtn.addEventListener('click', () => {
-                closeModal('logoutModal');
-                showToast('info', 'Đăng xuất', 'Đang đăng xuất khỏi hệ thống...');
-
-                // Simulate logout after 1 second
-                setTimeout(() => {
-                    window.location.href = "login.html"; // In a real app, this would redirect to the login page
-                }, 1000);
-            });
-        }
-    </script>
+            // Simulate logout after 1 second
+            setTimeout(() => {
+                window.location.href = "/"; // In a real app, this would redirect to the login page
+            }, 1000);
+        });
+    }
+</script>
 </body>
 </html>

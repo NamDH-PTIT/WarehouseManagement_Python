@@ -599,7 +599,8 @@
                     <th>Nhà cung cấp</th>
                     <th>Địa chỉ</th>
                     <th>Số điện thoại</th>
-                    <th>email</th>
+                    <th>Email</th>
+                    <th>Note</th>
                     <th>Thao tác</th>
                 </tr>
                 </thead>
@@ -612,6 +613,8 @@
                         <td><span class="import-warehouse">{{ item.addressNCC }}</span></td>
                         <td class="import-value">{{ item.phoneNCC }}</td>
                         <td class="import-value">{{ item.emailNCC }}</td>
+                        <td class="import-value">{{ item.notes }}</td>
+
                         <td><a href="#" onclick="edit({{ item.id }})" class="edit-link">sửa</a></td>
                     </tr>
                 {% endfor %}

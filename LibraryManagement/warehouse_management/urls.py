@@ -1,5 +1,6 @@
 from django.conf.urls.static import static
 from django.urls import path
+
 from .views import *
 
 urlpatterns = [
@@ -52,8 +53,10 @@ urlpatterns = [
                   path('home/', user_login),
                   path('home_vc/', home_vc),
 
-                  path('update_vc/id=<str:id>', update_vc),
+                  path('update_vc/id=<str:id>&status=<str:status>', update_vc),
                   path('addphieuxuat/', addphieuxuat),
                   path('chitietphieuxuat/id=<str:id>', chitietphieuxuat),
-                path('update_phieuxuat/',update_phieuxuat),
+                  path('update_phieuxuat/', update_phieuxuat),
+                  path('shipper_baocao/', shipper_baocao),
+                  path('shipperbaocao/', shipperbaocao)
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

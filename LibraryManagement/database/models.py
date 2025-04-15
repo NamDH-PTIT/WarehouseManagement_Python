@@ -4,7 +4,7 @@ from django.db import models
 
 
 def generate_unique_code():
-    return str(uuid.uuid4())[:20]  # Cắt 20 ký tự đầu tiên từ UUID
+    return str(uuid.uuid4())[:50]  # Cắt 50 ký tự đầu tiên từ UUID
 
 
 # Create your models here.
@@ -15,7 +15,7 @@ class Kho(models.Model):
 
 
 class Product(models.Model):
-    code = models.CharField(max_length=20, unique=True, default=generate_unique_code)
+    code = models.CharField(max_length=50, unique=True, default=generate_unique_code)
     nameProduct = models.CharField(max_length=50)
     category = models.CharField(max_length=50)
     importPrice = models.FloatField()
@@ -27,11 +27,11 @@ class Product(models.Model):
 
 
 class NhaCungCap(models.Model):
-    code = models.CharField(max_length=20, unique=True)
-    nameNCC = models.CharField(max_length=20)
-    addressNCC = models.CharField(max_length=20)
-    phoneNCC = models.CharField(max_length=20)
-    emailNCC = models.CharField(max_length=20)
+    code = models.CharField(max_length=50, unique=True,default=generate_unique_code)
+    nameNCC = models.CharField(max_length=50)
+    addressNCC = models.CharField(max_length=50)
+    phoneNCC = models.CharField(max_length=50)
+    emailNCC = models.CharField(max_length=50)
     notes = models.TextField(blank=True)
 
 
@@ -41,12 +41,12 @@ class PhieuNhap(models.Model):
         ('completed', 'Hoàn thành'),
         ('canceled', 'Đã hủy'),
     ]
-    code = models.CharField(max_length=20, unique=True, default=generate_unique_code)
+    code = models.CharField(max_length=50, unique=True, default=generate_unique_code)
     date = models.DateTimeField()
     totalPrice = models.FloatField()
     notes = models.TextField()
     codeKho = models.ForeignKey(Kho, to_field='code', on_delete=models.CASCADE, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     codeNCC = models.ForeignKey(NhaCungCap, to_field='code', on_delete=models.CASCADE)
 
 
@@ -58,12 +58,12 @@ class ChiTietPhieuNhap(models.Model):
 
 
 class Customer(models.Model):
-    code = models.CharField(max_length=20, unique=True, default=generate_unique_code)
-    name = models.CharField(max_length=20)
-    address = models.CharField(max_length=20)
-    phone = models.CharField(max_length=20)
-    email = models.CharField(max_length=20)
-    status =models.CharField(max_length=20,blank=True)
+    code = models.CharField(max_length=50, unique=True, default=generate_unique_code)
+    name = models.CharField(max_length=50)
+    address = models.CharField(max_length=50)
+    phone = models.CharField(max_length=50)
+    email = models.CharField(max_length=50)
+    status =models.CharField(max_length=50,blank=True)
 
 class PhieuXuat(models.Model):
     STATUS_CHOICES = [
@@ -71,11 +71,11 @@ class PhieuXuat(models.Model):
         ('completed', 'Hoàn thành'),
         ('canceled', 'Đã hủy'),
     ]
-    code = models.CharField(max_length=20, unique=True, default=generate_unique_code)
+    code = models.CharField(max_length=50, unique=True, default=generate_unique_code)
     date = models.DateTimeField()
     totalPrice = models.FloatField()
     notes = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     customer = models.ForeignKey(Customer, to_field="code", on_delete=models.CASCADE)
 
 
@@ -87,17 +87,17 @@ class ChiTietPhieuXuat(models.Model):
 
 
 class Role(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=50)
 
 
 class User(models.Model):
-    code = models.CharField(max_length=20, unique=True)
-    name = models.CharField(max_length=20)
-    address = models.CharField(max_length=20)
-    phone = models.CharField(max_length=20)
+    code = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
+    address = models.CharField(max_length=50)
+    phone = models.CharField(max_length=50)
     email = models.CharField(max_length=50)
-    password = models.CharField(max_length=20)
-    status = models.CharField(max_length=20)
+    password = models.CharField(max_length=50)
+    status = models.CharField(max_length=50)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
 

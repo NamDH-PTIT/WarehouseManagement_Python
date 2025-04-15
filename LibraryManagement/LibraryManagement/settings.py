@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'LibraryManagement.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'warehousemanagement1' ,
+        'NAME': 'warehousemanagement' ,
         'USER':'root',
         'HOST':'localhost',
         'PORT':'3306',

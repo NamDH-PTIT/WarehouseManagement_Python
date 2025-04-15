@@ -112,7 +112,11 @@ def addPhieuNhap(request):
                     quantity=item["quantity"],
                     importPrice=int(item["price"])
                 )
-            return redirect('/quanlynhaphang')
+            user=User.objects.filter(code=request.session.get('user_id')).first().role.name
+            if user == 'Admin':
+                return redirect('/quanlynhaphang')
+            else:
+                return redirect('/home')
     except Exception as e:
         return JsonResponse({'e': str(e)})
 
@@ -905,7 +909,7 @@ def add_ncc(request):
             date=datetime.now(),
             notes='Tạo nhà cung cấp ' + str(nameNCC) + " " + str(emailNCC) + ' ' + str(user_code)
         )
-        return render(request, 'LibraryManagement/quanlyxuathang.html')
+        return redirect('/quanlynhaphang/')
 
 
 def quanlyxuathang(request):
@@ -1019,31 +1023,52 @@ def user_login(request):
     kho = Product.objects.raw(
         'SELECT id,codeKho_id, COUNT(*) AS so_luong_san_pham  FROM database_product  GROUP BY codeKho_id')
     total = 0
-    hoatdong1 = Log.objects.all().order_by("-date")[:1]
-    hoatdong2 = Log.objects.all().order_by("-date")[1:2]
-    hoatdong3 = Log.objects.all().order_by("-date")[2:3]
-    hoatdong4 = Log.objects.all().order_by("-date")[3:4]
+
     for item in products:
         total = total + (item.quantity * item.importPrice)
     return render(request, "LibraryManagement/user.html",
                   {'user': user, 'total': total, 'nhiemvu': nhiemvu, 'phieunhap': phieunhap,
                    'phieuxuat': phieuxuat, 'products': products.count(),
-                   'productsaphet': productsaphet.count(), 'phieuxuatpending': phieuxuatpending, 'kho': kho,
-                   'hoatdong1': hoatdong1, 'hoatdong2': hoatdong2, 'hoatdong3': hoatdong3,
-                   'hoatdong4': hoatdong4})
+                   'productsaphet': productsaphet.count(), 'phieuxuatpending': phieuxuatpending, 'kho': kho})
 
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
 def home_vc(request):
     if(request.method == "GET"):
-        return render(request,'LibraryManagement/nvvanchuyen.html')
+        phieuxuat=PhieuXuat.objects.order_by("-date")
+        return render(request,'LibraryManagement/nvvanchuyen.html',{'phieuxuat': phieuxuat})
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
-def update_vc(request,id):
+def update_vc(request,id,status):
+    status_text = ""
+    st=""
+    if status == "pending":
+        status_text = "Đang chờ xử lý"
+        st="pending"
+    elif status == "processing":
+        status_text = "Đang xử lý"
+        st = "pending"
+    elif status == "shipped":
+        status_text = "Đang giao"
+        st = "pending"
+    elif status == "delivered":
+        status_text = "Đã giao hàng"
+        st = "completed"
+    elif status == "cancelled":
+        st = "cancelled"
+        status_text = "Đã hủy"
+
     user_id=request.session.get("user_id")
+    Log.objects.create(
+        date=datetime.now(),
+        notes="Đơn hàng "+id+" đang "+status_text
+    )
+    phieuxuat=PhieuXuat.objects.filter(code=id).first()
+    phieuxuat.status=st
+    phieuxuat.save()
     user=User.objects.filter(code=user_id).first()
-    return render(request,'LibraryManagement/nvvanchuyen.html',{'user': user})
+    return redirect('/home_vc')
 @transaction.atomic
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
@@ -1090,6 +1115,11 @@ def addphieuxuat(request):
         date=datetime.now(),
         notes='tạo phiếu xuất '+str(phieu_xuat.code)
     )
+    user = User.objects.filter(code=request.session.get('user_id')).first().role.name
+    if user == 'Admin':
+        return redirect('/quanlynhaphang')
+    else:
+        return redirect('/home')
     return redirect('/quanlyxuathang/')
 @csrf_exempt
 @transaction.atomic
@@ -1126,3 +1156,14 @@ def chitietphieuxuat(request,id):
     products = Product.objects.all()
     chitietphieuxuat=ChiTietPhieuXuat.objects.filter(phieuXuat=phieuxuat)
     return render(request,'LibraryManagement/chitietphieuxuat.html',{'phieuxuat': phieuxuat,'customer':customer,'products':products,'chitietphieuxuat':chitietphieuxuat})
+def shipper_baocao(request):
+    return render(request,'LibraryManagement/shipperbaocao.html')
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def shipperbaocao(request):
+    content=request.POST.get('content')
+    Log.objects.create(
+        date=datetime.now(),
+        notes=content
+    )
+    return redirect('/home_vc')
