@@ -647,6 +647,8 @@
                     <th>Tổng giá trị</th>
                     <th>Trạng thái</th>
                     <th>Note</th>
+                    <th>Địa chỉ</th>
+                    <th>Khách hàng</th>
                     <th>Thao tác</th>
                 </tr>
                 </thead>
@@ -658,6 +660,8 @@
                         <td class="export-value">{{ item.totalPrice }} đ</td>
                         <td><span class="export-status status-{{ item.status }}">{{ item.status }}</span></td>
                         <td class="export-creator">{{ item.notes }}</td>
+                        <td>{{ item.customer.address }}</td>
+                        <td>{{ item.customer.name }}</td>
                         <td>
                             <div class="export-actions">
                                 <div class="action-btn view-btn" onclick="viewExport('{{ item.code }}')">

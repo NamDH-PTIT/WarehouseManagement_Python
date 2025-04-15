@@ -1031,3 +1031,20 @@ def user_login(request):
                    'productsaphet': productsaphet.count(), 'phieuxuatpending': phieuxuatpending, 'kho': kho,
                    'hoatdong1': hoatdong1, 'hoatdong2': hoatdong2, 'hoatdong3': hoatdong3,
                    'hoatdong4': hoatdong4})
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def create_export(request):
+    # //chưa được
+    if request.method == "GET":
+        return render(request,'LibraryManagement/addphieuxuat.html')
+
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def home_vc(request):
+    if(request.method == "GET"):
+        return render(request,'LibraryManagement/nvvanchuyen.html')
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def update_vc(request,id):
+    print('àafsaf')
+    return render(request,'LibraryManagement/nvvanchuyen.html')

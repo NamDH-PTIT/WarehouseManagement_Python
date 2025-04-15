@@ -50,6 +50,8 @@ urlpatterns = [
                   path('quanlyxuathang/', quanlyxuathang),
                   path('baocao/', baocao),
                   path('logout/', logout),
-                    path('home/', user_login),
-
+                  path('home/', user_login),
+                  path('create_export/', create_export),
+                  path('home_vc/', home_vc),
+                  path('update_vc/id=<str:id>', update_vc, ),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
