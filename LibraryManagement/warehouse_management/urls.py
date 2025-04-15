@@ -55,4 +55,5 @@ urlpatterns = [
                   path('update_vc/id=<str:id>', update_vc),
                   path('addphieuxuat/', addphieuxuat),
                   path('chitietphieuxuat/id=<str:id>', chitietphieuxuat),
+                path('update_phieuxuat/',update_phieuxuat),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

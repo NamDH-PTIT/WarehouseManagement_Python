@@ -1041,8 +1041,9 @@ def home_vc(request):
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
 def update_vc(request,id):
-    print('àafsaf')
-    return render(request,'LibraryManagement/nvvanchuyen.html')
+    user_id=request.session.get("user_id")
+    user=User.objects.filter(code=user_id).first()
+    return render(request,'LibraryManagement/nvvanchuyen.html',{'user': user})
 @transaction.atomic
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
@@ -1085,10 +1086,34 @@ def addphieuxuat(request):
     else:
         customer.status = 'vip 0'
     customer.save()
-
+    Log.objects.create(
+        date=datetime.now(),
+        notes='tạo phiếu xuất '+str(phieu_xuat.code)
+    )
     return redirect('/quanlyxuathang/')
+@csrf_exempt
+@transaction.atomic
+@require_http_methods(["POST", "GET"])
+def update_phieuxuat(request):
+    data=json.loads(request.body)
+    phieu_xuat=PhieuXuat.objects.filter(code=data['code']).first()
+    customer=Customer.objects.filter(code=data['customer']).first()
+    phieu_xuat.customer=customer
+    phieu_xuat.status=data['status']
+    phieu_xuat.notes=data['notes']
+    phieu_xuat.totalPrice=int(data['totalAmount'])
+    products=data['products']
+    chitietphieuxuat=ChiTietPhieuXuat.objects.filter(phieuXuat=phieu_xuat)
 
 
+    for item in products:
+        for ctpx in chitietphieuxuat:
+            code=item['code']
+            quantity=item['quantity']
+            product=Product.objects.filter(code=code).first()
+            product.quantity=product+()
+
+    return JsonResponse({'success': True})
 
 def chitietphieuxuat(request,id):
     phieuxuat=PhieuXuat.objects.filter(code=id).first()

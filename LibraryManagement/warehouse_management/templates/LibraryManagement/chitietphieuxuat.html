@@ -492,7 +492,7 @@
       window.print();
     }
 
-    // Thay thế hàm saveChanges() hiện tại bằng hàm mới này
+    // Sửa hàm saveChanges() để khắc phục lỗi
     function saveChanges() {
       // Thu thập dữ liệu sản phẩm
       const products = [];
@@ -519,8 +519,6 @@
         date: document.getElementById('exportDate').value,
         customer: document.getElementById('customerSelect').value,
         customerName: document.getElementById('customerSelect').options[document.getElementById('customerSelect').selectedIndex].text,
-        warehouse: document.getElementById('warehouseSelect').value,
-        warehouseName: document.getElementById('warehouseSelect').options[document.getElementById('warehouseSelect').selectedIndex].text,
         status: document.getElementById('exportStatus').value,
         notes: document.getElementById('exportNotes').value.trim(),
         products: products,
@@ -528,7 +526,7 @@
       };
 
       // Gửi dữ liệu đến endpoint
-      fetch('/update_phieuxuat', {
+      fetch('/update_phieuxuat/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

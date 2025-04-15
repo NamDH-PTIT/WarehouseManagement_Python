@@ -809,7 +809,7 @@
             </button>
             <div class="header-right">
                 <div class="user-info">
-                    <span>Nguyễn Văn A</span>
+                    <span>{{ user.name }}</span>
                     <div class="user-avatar">
                         <i class="fas fa-user"></i>
                     </div>
@@ -1312,7 +1312,7 @@
                 loading.classList.add('visible');
 
                 // Create the update URL
-                const updateUrl = `/update_vc/id=${orderId}`;
+                const updateUrl = `/update_vc/id=${orderId}&status=${newStatus}`;
 
                 // Show loading for a brief moment before redirecting
                 setTimeout(() => {

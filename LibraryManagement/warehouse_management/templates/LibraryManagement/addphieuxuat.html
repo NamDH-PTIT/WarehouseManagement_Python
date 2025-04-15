@@ -728,7 +728,7 @@
     // Cancel button
     document.getElementById('cancelBtn').addEventListener('click', function() {
         if (confirm('Bạn có chắc chắn muốn hủy tạo phiếu xuất? Mọi thông tin sẽ không được lưu.')) {
-            window.location.href = '/quanlyxuathang/';
+            window.history.back();
         }
     });
 
