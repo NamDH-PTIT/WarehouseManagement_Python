@@ -757,15 +757,15 @@
         <div class="stock-legend">
             <div class="legend-item">
                 <div class="legend-color legend-red"></div>
-                <div class="legend-text">Dưới 20 sản phẩm</div>
+                <div class="legend-text">Dưới 200 sản phẩm</div>
             </div>
             <div class="legend-item">
                 <div class="legend-color legend-yellow"></div>
-                <div class="legend-text">Từ 20 đến 50 sản phẩm</div>
+                <div class="legend-text">Từ 200 đến 500 sản phẩm</div>
             </div>
             <div class="legend-item">
                 <div class="legend-color legend-normal"></div>
-                <div class="legend-text">Trên 50 sản phẩm</div>
+                <div class="legend-text">Trên 500 sản phẩm</div>
             </div>
         </div>
 
@@ -784,14 +784,14 @@
             </thead>
             <tbody>
             {% for item in products %}
-                {% if item.quantity < 50 %}
+                {% if item.quantity < 200 %}
                     <tr class="product-low">
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 {% if item.image %}
                                     <img src="{{ item.image.url }}" alt="Ảnh sản phẩm" class="product-image">
                                 {% else %}
-                                    <img src="/media/images/default.jpg" alt="" class="product-image">
+                                    <img src="images/tải_xuống.jpg" alt="" class="product-image">
                                 {% endif %}
                                 <div>
                                     <div class="product-name">{{ item.nameProduct }}</div>
@@ -820,11 +820,15 @@
                             </div>
                         </td>
                     </tr>
-                {% elif item.quantity < 70 %}
+                {% elif item.quantity < 500 %}
                     <tr class="product-medium">
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="https://via.placeholder.com/50" alt="Áo sơ mi nam" class="product-image">
+                                 {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="Ảnh sản phẩm" class="product-image">
+                                {% else %}
+                                    <img src="images/tải_xuống.jpg" alt="" class="product-image">
+                                {% endif %}
                                 <div>
                                     <div class="product-name">{{ item.nameProduct }}</div>
                                     <div class="product-category">{{ item.category }}</div>
@@ -856,7 +860,11 @@
                     <tr>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="https://via.placeholder.com/50" alt="Áo khoác nam" class="product-image">
+                                 {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="Ảnh sản phẩm" class="product-image">
+                                {% else %}
+                                    <img src="images/tải_xuống.jpg" alt="" class="product-image">
+                                {% endif %}
                                 <div>
                                     <div class="product-name">{{ item.nameProduct }}</div>
                                     <div class="product-category">{{ item.category }}</div>

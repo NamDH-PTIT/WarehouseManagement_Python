@@ -30,7 +30,7 @@ from warehouse_management.response.ApiResponse import ApiResponse
 def getAllProducts(request):
     products = list(Product.objects.raw("select * from database_product order by quantity asc"))
     page = int(request.GET.get('page', 1)) - 1
-    low_stock_products = Product.objects.filter(quantity__lt=30)
+    low_stock_products = Product.objects.filter(quantity__lt=200)
     pagequantity = int(len(products) / 10)
     danhmuc = list(Product.objects.raw("SELECT category,id FROM `database_product` GROUP BY category"))
     if (len(products) % 10 != 0):
@@ -269,7 +269,7 @@ def updateProduct(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def home_manager(request):
-    low_stock_products = Product.objects.filter(quantity__lt=30)
+    low_stock_products = Product.objects.filter(quantity__lt=200)
     low_stock_products = low_stock_products.order_by("quantity")
     phieuxuat = PhieuXuat.objects.filter(status="completed")
     loinhuan = 0
@@ -302,17 +302,21 @@ def export_products_excel(request):
     search = data.get("search")
     products = Product.objects.all()
 
+    products = products.order_by('quantity')
     if category:
         products = products.filter(category=category)
+        products = products.order_by('quantity')
     if status:
         if status == "2":
             products = products.filter(quantity__gte=1)
         if status == "3":
-            products = products.filter(quantity__lte=20)
+            products = products.filter(quantity__lte=200)
         if status == "4":
             products = products.filter(quantity__lte=0)
+        products = products.order_by('quantity')
     if search:
         products = products.filter(nameProduct__icontains=search)
+        products = products.order_by('quantity')
 
     # Sắp xếp theo sort
     if sort == 'name-asc':
@@ -439,27 +443,31 @@ def filter_products(request):
     sort = request.GET.get('sort')
     status = request.GET.get('status')
     search = request.GET.get('search')
-    low_stock_products = Product.objects.filter(quantity__lt=30)
+    low_stock_products = Product.objects.filter(quantity__lt=200)
     low_stock_products = low_stock_products.order_by("quantity")
     # Lọc sản phẩm
-    products = Product.objects.all()
 
+    products = Product.objects.all()
+    products = products.order_by('quantity')
     # Lọc theo category
     if category:
         products = products.filter(category=category)
+        products = products.order_by('quantity')  # Sắp xếp giảm dần theo quantity
 
     # Lọc theo status
     if status:
         if status == "2":
             products = products.filter(quantity__gte=1)
         if status == "3":
-            products = products.filter(quantity__lte=20)
+            products = products.filter(quantity__lte=200)
         if status == "4":
             products = products.filter(quantity__lte=0)
+        products = products.order_by('quantity')  # Sắp xếp giảm dần theo quantity
 
     # Lọc theo tìm kiếm
     if search:
         products = products.filter(nameProduct__icontains=search)
+        products = products.order_by('quantity')
 
     # Sắp xếp theo sort
     if sort == 'name-asc':
@@ -472,7 +480,7 @@ def filter_products(request):
         products = products.order_by("-sellingPrice")  # Sắp xếp giảm dần
 
     # Sắp xếp theo số lượng
-    products = products.order_by('quantity')  # Sắp xếp giảm dần theo quantity
+
 
     # Trả về JSON hoặc render kết quả
 
@@ -483,7 +491,7 @@ def filter_products(request):
 
 def getuser(request):
     user = list(User.objects.all())
-    low_stock_products = Product.objects.filter(quantity__lt=30)
+    low_stock_products = Product.objects.filter(quantity__lt=200)
     return render(request, 'LibraryManagement/manage_account.html', {"user": user, "sanphamsaphet": low_stock_products})
 
 
@@ -757,7 +765,7 @@ def quanlynhaphang(request):
 
 def quanlykhachhang(request):
     ncc = NhaCungCap.objects.all()
-    user = Customer.objects.all().order_by('status')
+    user = Customer.objects.all().order_by('-status')
 
     # Tạo dictionary từ customer_id -> số lượng phiếu xuất (k)
     soluong_raw = PhieuXuat.objects.raw(
@@ -1104,9 +1112,9 @@ def addphieuxuat(request):
     soluongdon = PhieuXuat.objects.filter(customer=customer).count()
     if soluongdon < 5:
         customer.status = 'vip 3'
-    elif soluongdon < 10:
-        customer.status = 'vip 2'
     elif soluongdon < 20:
+        customer.status = 'vip 2'
+    elif soluongdon > 20:
         customer.status = 'vip 1'
     else:
         customer.status = 'vip 0'
