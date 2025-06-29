@@ -765,7 +765,7 @@ def quanlynhaphang(request):
 
 def quanlykhachhang(request):
     ncc = NhaCungCap.objects.all()
-    user = Customer.objects.all().order_by('-status')
+    user = Customer.objects.all().order_by('status')
 
     # Tạo dictionary từ customer_id -> số lượng phiếu xuất (k)
     soluong_raw = PhieuXuat.objects.raw(
